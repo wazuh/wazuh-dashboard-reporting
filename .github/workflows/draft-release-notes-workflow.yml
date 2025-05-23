@@ -8,7 +8,7 @@ on:
 jobs:
   update_release_draft:
     name: Update draft release notes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "main"
       - name: Update draft release notes
