@@ -1,6 +1,8 @@
 name: Lint
 
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   PLUGIN_NAME: dashboards-reporting
@@ -9,18 +11,19 @@ env:
 jobs:
   build:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Checkout OpenSearch Dashboards
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: opensearch-project/Opensearch-Dashboards
           ref: ${{ env.OPENSEARCH_DASHBOARDS_VERSION }}
           path: OpenSearch-Dashboards
 
       - name: Checkout dashboards reporting
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
           fetch-depth: 0
@@ -33,7 +36,7 @@ jobs:
           echo "::set-output name=yarn_version::$(node -p "(require('./OpenSearch-Dashboards/package.json').engines.yarn).match(/[.0-9]+/)[0]")"
 
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ steps.versions_step.outputs.node_version }}
           registry-url: "https://registry.npmjs.org"

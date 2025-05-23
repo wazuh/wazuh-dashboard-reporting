@@ -1,17 +1,17 @@
 name: Link Checker
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   linkchecker:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.draft == false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: lychee Link Checker
         id: lychee
         uses: lycheeverse/lychee-action@master
