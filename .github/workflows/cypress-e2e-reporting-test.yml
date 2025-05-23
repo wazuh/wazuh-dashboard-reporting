@@ -1,14 +1,16 @@
 name: Cypress E2E Dashboards Reporting Plugin Test
 
-on: [pull_request, push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   CI: 1
   # avoid warnings like "tput: No value for $TERM and no -T specified"
   TERM: xterm
   OPENSEARCH_DASHBOARDS_VERSION: '2.x'
-  OPENSEARCH_VERSION: '2.18.0'
-  OPENSEARCH_PLUGIN_VERSION: '2.18.0.0'
+  OPENSEARCH_VERSION: '2.19.2'
+  OPENSEARCH_PLUGIN_VERSION: '2.19.2.0'
   PLUGIN_NAME: dashboards-reporting
 
 jobs:
@@ -17,9 +19,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.14 ]
         jdk: [ 11 ]
     runs-on: ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Set up JDK
