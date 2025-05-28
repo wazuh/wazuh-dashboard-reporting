@@ -1,6 +1,8 @@
 name: Test and Build OpenSearch Dashboards Reports
 
-on: [pull_request, push]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   PLUGIN_NAME: reportsDashboards
@@ -17,6 +19,7 @@ jobs:
   linux-build:
     needs: Get-CI-Image-Tag
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     container:
       # using the same image which is used by opensearch-build team to build the OpenSearch Distribution
       # this image tag is subject to change as more dependencies and updates will arrive over time
