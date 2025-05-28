@@ -1,6 +1,9 @@
 name: Lint
 
-on: [pull_request]
+on:
+  pull_request:
+    types:
+      [opened, synchronize, reopened, ready_for_review]
 
 env:
   PLUGIN_NAME: dashboards-reporting
@@ -10,6 +13,7 @@ jobs:
   build:
     name: Lint
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Checkout OpenSearch Dashboards
