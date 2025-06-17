@@ -35,6 +35,8 @@ jobs:
   # Build an app package from the given source code reference.
   build:
     name: Build app package
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/6_builderprecompiled_base-dev-environment.yml
     with:
       reference: ${{ inputs.reference }}
