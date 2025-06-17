@@ -53,6 +53,8 @@ jobs:
   deploy_and_run_command:
     name: Deploy and run command
     runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
     steps:
       - name: Step 01 - Download the plugin's source code
         uses: actions/checkout@v4
