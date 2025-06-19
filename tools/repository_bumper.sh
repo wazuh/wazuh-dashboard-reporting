@@ -10,6 +10,7 @@ SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH=$(git rev-parse --show-toplevel 2>/dev/null)
 DATE_TIME=$(date "+%Y-%m-%d_%H-%M-%S-%3N")
 LOG_FILE="${SCRIPT_PATH}/repository_bumper_${DATE_TIME}.log"
+WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE="${REPO_PATH}/.github/workflows/5_builderpackage_reporting_plugin.yml"
 VERSION_FILE="${REPO_PATH}/VERSION.json"
 VERSION=""
 REVISION="00"
@@ -294,7 +295,7 @@ update_package_json() {
 }
 
 update_manual_build_workflow() {
-  local WORKFLOW_FILE="${REPO_PATH}/.github/workflows/manual-build.yml"
+  local WORKFLOW_FILE="$WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE"
   if [ -f "$WORKFLOW_FILE" ]; then
     log "Processing $WORKFLOW_FILE"
     local modified=false
@@ -323,7 +324,7 @@ update_manual_build_workflow() {
   else
     log "WARNING: $WORKFLOW_FILE not found. Skipping update."
   fi
-  log "Updating manual build workflow..."
+  log "Updating $WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE workflow..."
 
 }
 
