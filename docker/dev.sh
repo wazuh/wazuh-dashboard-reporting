@@ -82,8 +82,8 @@ if [ -z "$os_version" ] || [ -z "$osd_version" ]; then
       exit 1
     fi
     
-    osd_version="${osd_base_version}-${wazuh_version}"
-    echo "[INFO] Using combined version: $osd_version"
+    combined_version="${osd_base_version}-${wazuh_version}"
+    echo "[INFO] Using combined version: $combined_version"
   fi
 fi
 
@@ -102,7 +102,7 @@ fi
 
 export PASSWORD=${PASSWORD:-admin}
 export OS_VERSION=$os_version
-export OSD_VERSION=$osd_version
+export OSD_VERSION=$combined_version
 export OSD_PORT=${PORT:-5601}
 export IMPOSTER_VERSION=3.44.1
 export SRC=$1
