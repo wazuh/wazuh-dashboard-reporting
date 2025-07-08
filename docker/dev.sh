@@ -28,7 +28,7 @@ if ! command -v jq &> /dev/null; then
   exit 1
 fi
 
-PACKAGE_PATH="../opensearch_dashboards.json"
+PACKAGE_PATH="../package.json"
 os_version=""
 osd_version=""
 
@@ -54,13 +54,13 @@ shift $((OPTIND - 1))
 
 if [ -z "$os_version" ] || [ -z "$osd_version" ]; then
   if [ ! -f $PACKAGE_PATH ]; then
-    echo "[ERROR] The file package.json was not found."
+    echo "[ERROR] The file $PACKAGE_PATH was not found."
     exit 1
   fi
 
   if [ -z "$os_version" ]; then
     echo "[INFO] OS Version not received via flag, getting the version from $PACKAGE_PATH"
-    os_version=$(jq -r '.opensearchDashboardsVersion' $PACKAGE_PATH)
+    os_version=$(jq -r '.opensearchDashboards.version' $PACKAGE_PATH)
     if [ -z "$os_version" ]; then
       echo "[ERROR] Could not retrieve the OS version from package.json."
       exit 1
@@ -69,11 +69,21 @@ if [ -z "$os_version" ] || [ -z "$osd_version" ]; then
 
   if [ -z "$osd_version" ]; then
     echo "[INFO] OSD Version not received via flag, getting the version from $PACKAGE_PATH"
-    osd_version=$(jq -r '.opensearchDashboardsVersion' $PACKAGE_PATH)
-    if [ -z "$osd_version" ]; then
-      echo "[ERROR] Could not retrieve the OSD version from package.json."
+   
+    osd_base_version=$(jq -r '.opensearchDashboards.version' $PACKAGE_PATH)
+    if [ -z "$osd_base_version" ]; then
+      echo "[ERROR] Could not retrieve the OSD version from $PACKAGE_PATH."
       exit 1
     fi
+    
+    wazuh_version=$(jq -r '.wazuh.version' $PACKAGE_PATH)
+    if [ -z "$wazuh_version" ]; then
+      echo "[ERROR] Could not retrieve the Wazuh version from $PACKAGE_PATH."
+      exit 1
+    fi
+    
+    combined_version="${osd_base_version}-${wazuh_version}"
+    echo "[INFO] Using combined version: $combined_version"
   fi
 fi
 
@@ -92,7 +102,7 @@ fi
 
 export PASSWORD=${PASSWORD:-admin}
 export OS_VERSION=$os_version
-export OSD_VERSION=$osd_version
+export OSD_VERSION=$combined_version
 export OSD_PORT=${PORT:-5601}
 export IMPOSTER_VERSION=3.44.1
 export SRC=$1
