@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { i18n } from '@osd/i18n';
 import {
   EuiFlexGroup,
@@ -17,13 +17,13 @@ import {
   EuiText,
   EuiTitle,
 } from '@elastic/eui';
+import CSS from 'csstype';
 import { ReportsTable } from './reports_table';
 import { ReportDefinitions } from './report_definitions_table';
 import {
   addReportsTableContent,
   addReportDefinitionsTableContent,
 } from './main_utils';
-import CSS from 'csstype';
 import {
   permissionsMissingToast,
   permissionsMissingActions,
@@ -277,16 +277,18 @@ export function Main(props) {
     <div>
       <EuiTitle size="l">
         <h1>
-          {!getNavGroupEnabled && i18n.translate('opensearch.reporting.title', {
-            defaultMessage: 'Reporting',
-          })}
+          {
+            !getNavGroupEnabled && i18n.translate('opensearch.reporting.title', {
+              defaultMessage: 'Reporting',
+            })
+          }
         </h1>
       </EuiTitle>
-      {!getNavGroupEnabled && <EuiSpacer size='s' />}
+      {!getNavGroupEnabled && <EuiSpacer size="s" />}
       <EuiPanel paddingSize={'m'}>
         <EuiFlexGroup justifyContent="spaceEvenly">
           <EuiFlexItem>
-            <EuiText size='s'>
+            <EuiText size="s">
               <h3>
                 {i18n.translate('opensearch.reports.main.title.reports', {
                   defaultMessage: 'Reports',
@@ -308,11 +310,11 @@ export function Main(props) {
             </EuiSmallButton>
           </EuiFlexItem>
         </EuiFlexGroup>
-        <EuiHorizontalRule margin='s' />
+        <EuiHorizontalRule margin="s" />
         <ReportsTable
           pagination={pagination}
           reportsTableItems={reportsTableContent}
-          httpClient={props['httpClient']}
+          httpClient={props.httpClient}
           handleSuccessToast={handleOnDemandDownloadSuccessToast}
           handleErrorToast={handleOnDemandDownloadErrorToast}
           handlePermissionsMissingToast={handlePermissionsMissingDownloadToast}
@@ -322,7 +324,7 @@ export function Main(props) {
       <EuiPanel paddingSize={'m'}>
         <EuiFlexGroup justifyContent="spaceEvenly">
           <EuiFlexItem>
-            <EuiText size='s'>
+            <EuiText size="s">
               <h3>
                 {i18n.translate(
                   'opensearch.reports.main.title.reportDefinitions',
@@ -362,7 +364,7 @@ export function Main(props) {
             </EuiSmallButton>
           </EuiFlexItem>
         </EuiFlexGroup>
-        <EuiHorizontalRule margin='s' />
+        <EuiHorizontalRule margin="s" />
         <ReportDefinitions
           pagination={pagination}
           reportDefinitionsTableContent={reportDefinitionsTableContent}
