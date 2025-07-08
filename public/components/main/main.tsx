@@ -277,10 +277,8 @@ export function Main(props) {
     <div>
       <EuiTitle size="l">
         <h1>
-          {
-            !getNavGroupEnabled && i18n.translate('opensearch.reporting.title', {
-              defaultMessage: 'Reporting',
-            })
+          {!getNavGroupEnabled && i18n.translate('opensearch.reporting.title', {
+              defaultMessage: 'Reporting',})
           }
         </h1>
       </EuiTitle>
