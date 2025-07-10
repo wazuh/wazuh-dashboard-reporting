@@ -162,21 +162,9 @@ jobs:
           echo "::set-output name=cypress_version::$(cat ./package.json | jq '.dependencies.cypress' | tr -d '"')"
         working-directory: opensearch-dashboards-functional-test
 
-      - name: Create Cypress config
-        run: |
-          cat > cypress.config.temp.js << 'EOF'
-          const { defineConfig } = require('cypress')
-          module.exports = defineConfig({
-            e2e: {
-              excludeSpecPattern: ['**/01-create.spec.js', '**/02-edit.spec.js']
-            }
-          })
-          EOF
-        working-directory: opensearch-dashboards-functional-test
-
       - name: Run Cypress tests
         run: |
-          yarn cypress:run-without-security --browser chromium --config-file cypress.config.temp.js --spec 'cypress/integration/plugins/reports-dashboards/*.js'
+          yarn cypress:run-without-security --browser chromium --spec 'cypress/integration/plugins/reports-dashboards/*-d*.js'
         working-directory: opensearch-dashboards-functional-test
 
       - name: Capture failure screenshots
