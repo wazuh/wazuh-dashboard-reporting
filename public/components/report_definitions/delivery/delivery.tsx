@@ -15,30 +15,30 @@ import {
   EuiCompressedCheckbox,
   EuiCompressedComboBox,
   EuiCompressedFieldText,
-  EuiSmallButton
+  EuiSmallButton,
 } from '@elastic/eui';
 import CSS from 'csstype';
+import ReactMDE from 'react-mde';
 import {
   getChannelsQueryObject,
   noDeliveryChannelsSelectedMessage,
   testMessageConfirmationMessage,
-  testMessageFailureMessage
+  testMessageFailureMessage,
 } from './delivery_constants';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 import { ReportDefinitionParams } from '../create/create_report_definition';
-import ReactMDE from 'react-mde';
 import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
 
 const styles: CSS.Properties = {
-  maxWidth: '800px'
+  maxWidth: '800px',
 };
 
 // TODO: add to schema to avoid need for export
 export let includeDelivery = false;
 
-export type ReportDeliveryProps = {
+export interface ReportDeliveryProps {
   edit: boolean;
   editDefinitionId: string;
   reportDefinitionRequest: ReportDefinitionParams;
@@ -49,7 +49,7 @@ export type ReportDeliveryProps = {
   deliverySubjectError: string;
   showDeliveryTextError: boolean;
   deliveryTextError: string;
-};
+}
 
 export function ReportDelivery(props: ReportDeliveryProps) {
   const {
@@ -62,7 +62,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     showDeliverySubjectError,
     deliverySubjectError,
     showDeliveryTextError,
-    deliveryTextError
+    deliveryTextError,
   } = props;
 
   const [isDeliveryHidden, setIsHidden] = useState(false);
@@ -122,34 +122,8 @@ export function ReportDelivery(props: ReportDeliveryProps) {
       configIds: [],
       title: `\u2014`, // default values before any Notifications settings are configured
       textDescription: `\u2014`,
-      htmlDescription: ''
+      htmlDescription: '',
     };
-  };
-
-  const isStatusCodeSuccess = (statusCode: string) => {
-    if (!statusCode) return true;
-    return /^2\d\d/.test(statusCode);
-  };
-
-  const eventToNotification = (event: any) => {
-    const success = event.event.status_list.every((status: any) =>
-      isStatusCodeSuccess(status.delivery_status.status_code)
-    );
-    return {
-      event_source: event.event.event_source,
-      status_list: event.event.status_list,
-      event_id: event.event_id,
-      created_time_ms: event.created_time_ms,
-      last_updated_time_ms: event.last_updated_time_ms,
-      success
-    };
-  };
-
-  const getNotification = async (id: string) => {
-    const response = await httpClientProps.get(
-      `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_EVENT}/${id}`
-    );
-    return eventToNotification(response.event_list[0]);
   };
 
   const sendTestNotificationsMessage = async () => {
@@ -157,22 +131,20 @@ export function ReportDelivery(props: ReportDeliveryProps) {
       handleTestMessageConfirmation(noDeliveryChannelsSelectedMessage);
     }
     let testMessageFailures = false;
-    let failedChannels: string[] = [];
+    const failedChannels: string[] = [];
     // for each config ID in the current channels list
     for (let i = 0; i < selectedChannels.length; ++i) {
       try {
-        const eventId = await httpClientProps
+        await httpClientProps
           .get(
-            `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.SEND_TEST_MESSAGE}/${selectedChannels[
-              i
-            ].id}`,
+            `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.SEND_TEST_MESSAGE}/${selectedChannels[i].id}`,
             {
               query: {
-                feature: 'report'
-              }
+                feature: 'report',
+              },
             }
           )
-          .then(response => response.event_source.reference_id);
+          .then((response) => response.event_source.reference_id);
       } catch (error) {
         testMessageFailures = true;
       }
@@ -192,16 +164,16 @@ export function ReportDelivery(props: ReportDeliveryProps) {
         headers: {
           Accept: 'text/plain, */*; q=0.01',
           'Accept-Language': 'en-US,en;q=0.5',
-          'osd-xsrf': 'true'
+          'osd-xsrf': 'true',
         },
         method: 'POST',
-        mode: 'cors'
+        mode: 'cors',
       }
     )
-      .then(response => {
+      .then((response) => {
         return response.text();
       })
-      .then(function(data) {
+      .then(function (data) {
         if (data.includes('opensearch-notifications')) {
           setIsHidden(false);
           return;
@@ -214,10 +186,10 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     checkIfNotificationsPluginIsInstalled();
     httpClientProps
       .get(`${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_CONFIGS}`, {
-        query: getChannelsQueryObject
+        query: getChannelsQueryObject,
       })
       .then(async (response: any) => {
-        let availableChannels = getAvailableNotificationsChannels(
+        const availableChannels = getAvailableNotificationsChannels(
           response.config_list
         );
         setChannels(availableChannels);
@@ -228,17 +200,17 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           httpClientProps
             .get(`../api/reporting/reportDefinitions/${editDefinitionId}`)
             .then(async (response: any) => {
-              let delivery = response.report_definition.delivery;
+              const delivery = response.report_definition.delivery;
               if (delivery.configIds.length > 0) {
                 // add config IDs
                 handleSendNotification({ target: { checked: true } });
-                let editChannelOptions = [];
+                const editChannelOptions = [];
                 for (let i = 0; i < delivery.configIds.length; ++i) {
                   for (let j = 0; j < availableChannels.length; ++j) {
                     if (delivery.configIds[i] === availableChannels[j].id) {
-                      let editChannelOption = {
+                      const editChannelOption = {
                         label: availableChannels[j].label,
-                        id: availableChannels[j].id
+                        id: availableChannels[j].id,
                       };
                       editChannelOptions.push(editChannelOption);
                       break;
@@ -263,70 +235,68 @@ export function ReportDelivery(props: ReportDeliveryProps) {
       });
   }, []);
 
-  const showNotificationsBody = sendNotification
-    ? <div>
-        <EuiSpacer />
-        <EuiCompressedFormRow
-          label="Channels"
-          isInvalid={showDeliveryChannelError}
-          error={deliveryChannelError}
-        >
-          <EuiCompressedComboBox
-            id="notificationsChannelSelect"
-            placeholder={'Select channels'}
-            options={channels}
-            selectedOptions={selectedChannels}
-            onChange={handleSelectedChannels}
-            isClearable={true}
-          />
-        </EuiCompressedFormRow>
-        <EuiSpacer />
-        <EuiCompressedFormRow
-          label="Notification subject"
-          helpText="Required if at least one channel type is Email."
-          isInvalid={showDeliverySubjectError}
-          error={deliverySubjectError}
-          style={styles}
-        >
-          <EuiCompressedFieldText
-            placeholder={'Enter notification message subject'}
-            fullWidth={true}
-            value={notificationSubject}
-            onChange={handleNotificationSubject}
-          />
-        </EuiCompressedFormRow>
-        <EuiSpacer />
-        <EuiCompressedFormRow
-          label="Notification message"
-          helpText="Embed variables in your message using Markdown."
-          isInvalid={showDeliveryTextError}
-          error={deliveryTextError}
-          style={styles}
-        >
-          <ReactMDE
-            value={notificationMessage}
-            onChange={handleNotificationMessage}
-            selectedTab={selectedTab}
-            onTabChange={setSelectedTab}
-            toolbarCommands={[
-              ['header', 'bold', 'italic', 'strikethrough'],
-              ['unordered-list', 'ordered-list', 'checked-list']
-            ]}
-            generateMarkdownPreview={markdown =>
-              Promise.resolve(converter.makeHtml(markdown))}
-          />
-        </EuiCompressedFormRow>
-        <EuiSpacer />
-        <EuiCompressedFormRow
-          helpText={testMessageConfirmation}
+  const showNotificationsBody = sendNotification ? (
+    <div>
+      <EuiSpacer />
+      <EuiCompressedFormRow
+        label="Channels"
+        isInvalid={showDeliveryChannelError}
+        error={deliveryChannelError}
+      >
+        <EuiCompressedComboBox
+          id="notificationsChannelSelect"
+          placeholder={'Select channels'}
+          options={channels}
+          selectedOptions={selectedChannels}
+          onChange={handleSelectedChannels}
+          isClearable={true}
+        />
+      </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCompressedFormRow
+        label="Notification subject"
+        helpText="Required if at least one channel type is Email."
+        isInvalid={showDeliverySubjectError}
+        error={deliverySubjectError}
+        style={styles}
+      >
+        <EuiCompressedFieldText
+          placeholder={'Enter notification message subject'}
           fullWidth={true}
-        >
-          <EuiSmallButton onClick={sendTestNotificationsMessage}>
-            Send test message
-          </EuiSmallButton>
-        </EuiCompressedFormRow>
-      </div>
-    : null;
+          value={notificationSubject}
+          onChange={handleNotificationSubject}
+        />
+      </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCompressedFormRow
+        label="Notification message"
+        helpText="Embed variables in your message using Markdown."
+        isInvalid={showDeliveryTextError}
+        error={deliveryTextError}
+        style={styles}
+      >
+        <ReactMDE
+          value={notificationMessage}
+          onChange={handleNotificationMessage}
+          selectedTab={selectedTab}
+          onTabChange={setSelectedTab}
+          toolbarCommands={[
+            ['header', 'bold', 'italic', 'strikethrough'],
+            ['unordered-list', 'ordered-list', 'checked-list'],
+          ]}
+          generateMarkdownPreview={(markdown) =>
+            Promise.resolve(converter.makeHtml(markdown))
+          }
+        />
+      </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCompressedFormRow helpText={testMessageConfirmation} fullWidth={true}>
+        <EuiSmallButton onClick={sendTestNotificationsMessage}>
+          Send test message
+        </EuiSmallButton>
+      </EuiCompressedFormRow>
+    </div>
+  ) : null;
 
   return (
     <EuiPageContent panelPaddingSize={'l'} hidden={isDeliveryHidden}>

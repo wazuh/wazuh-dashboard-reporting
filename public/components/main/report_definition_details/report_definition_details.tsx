@@ -19,21 +19,21 @@ import {
   EuiLink,
   EuiGlobalToastList,
   EuiOverlayMask,
-  EuiConfirmModal
+  EuiConfirmModal,
 } from '@elastic/eui';
+import moment from 'moment';
 import {
   ReportDetailsComponent,
   trimAndRenderAsText,
 } from '../report_details/report_details';
 import {
   fileFormatsUpper,
-  generateReportFromDefinitionId
+  generateReportFromDefinitionId,
 } from '../main_utils';
 import { ReportDefinitionSchemaType } from '../../../../server/model';
-import moment from 'moment';
 import {
   permissionsMissingToast,
-  permissionsMissingActions
+  permissionsMissingActions,
 } from '../../utils/utils';
 import { GenerateReportLoadingModal } from '../loading_modal';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
@@ -64,7 +64,7 @@ export function ReportDefinitionDetails(props: {
   httpClient?: any;
   chrome: any;
 }) {
-    const { chrome } = props;
+  const { chrome } = props;
   const [reportDefinitionDetails, setReportDefinitionDetails] = useState<
     ReportDefinitionDetails
   >({
@@ -82,16 +82,16 @@ export function ReportDefinitionDetails(props: {
     triggerType: '',
     scheduleDetails: '',
     baseUrl: '',
-    emailrecipients: []
+    emailrecipients: [],
   });
   const [
     reportDefinitionRawResponse,
-    setReportDefinitionRawResponse
+    setReportDefinitionRawResponse,
   ] = useState<any>({});
   const [toasts, setToasts] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
-  const reportDefinitionId = props.match['params']['reportDefinitionId'];
+  const reportDefinitionId = props.match.params.reportDefinitionId;
   const getNavGroupEnabled = chrome.navGroup.getNavGroupEnabled();
 
   const handleLoading = (e: boolean | ((prevState: boolean) => boolean)) => {
@@ -140,7 +140,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'reportDefinitionDetailsErrorToast'
+      id: 'reportDefinitionDetailsErrorToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -158,7 +158,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'success',
       iconType: 'check',
-      id: 'generateReportSuccessToast'
+      id: 'generateReportSuccessToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(successToast));
@@ -176,7 +176,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'generateReportErrorToast'
+      id: 'generateReportErrorToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -198,7 +198,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'success',
       iconType: 'check',
-      id: 'successEnableToast'
+      id: 'successEnableToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(successToast));
@@ -212,7 +212,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'errorToast'
+      id: 'errorToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -226,7 +226,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'success',
       iconType: 'check',
-      id: 'successDisableToast'
+      id: 'successDisableToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(successToast));
@@ -248,7 +248,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'errorDisableToast'
+      id: 'errorDisableToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -272,7 +272,7 @@ export function ReportDefinitionDetails(props: {
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'errorDeleteToast'
+      id: 'errorDeleteToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -325,7 +325,7 @@ export function ReportDefinitionDetails(props: {
                 'opensearch.reports.reportDefinitionsDetails.button.delete.query',
                 {
                   defaultMessage: 'Are you sure you want to delete "{name}"?',
-                  values: { name: reportDefinitionDetails.name }
+                  values: { name: reportDefinitionDetails.name },
                 }
               )}
             </p>
@@ -335,7 +335,7 @@ export function ReportDefinitionDetails(props: {
     );
   };
 
-  const humanReadableScheduleDetails = trigger => {
+  const humanReadableScheduleDetails = (trigger) => {
     let scheduleDetails = '';
     if (trigger.trigger_type === 'Schedule') {
       if (trigger.trigger_params.schedule_type === 'Recurring') {
@@ -351,7 +351,7 @@ export function ReportDefinitionDetails(props: {
             'opensearch.reports.reportDefinitionsDetails.schedule.dailyAt',
             {
               defaultMessage: 'Daily @ {time}',
-              values: { time: date.toTimeString() }
+              values: { time: date.toTimeString() },
             }
           );
         } else {
@@ -367,8 +367,8 @@ export function ReportDefinitionDetails(props: {
               values: {
                 period: trigger.trigger_params.schedule.interval.period,
                 unit: trigger.trigger_params.schedule.interval.unit.toLowerCase(),
-                time: date.toTimeString()
-              }
+                time: date.toTimeString(),
+              },
             }
           );
         }
@@ -380,8 +380,8 @@ export function ReportDefinitionDetails(props: {
             defaultMessage: 'Cron based: {expression} ({timezone})',
             values: {
               expression: trigger.trigger_params.schedule.cron.expression,
-              timezone: trigger.trigger_params.schedule.cron.timezone
-            }
+              timezone: trigger.trigger_params.schedule.cron.timezone,
+            },
           }
         );
       }
@@ -398,71 +398,75 @@ export function ReportDefinitionDetails(props: {
       trigger,
       delivery,
       time_created: timeCreated,
-      last_updated: lastUpdated
+      last_updated: lastUpdated,
     } = reportDefinition;
     const {
       trigger_type: triggerType,
-      trigger_params: triggerParams
+      trigger_params: triggerParams,
     } = trigger;
     const {
       core_params: {
         base_url: baseUrl,
         report_format: reportFormat,
-        time_duration: timeDuration
-      }
+        time_duration: timeDuration,
+      },
     } = reportParams;
 
-    let readableDate = new Date(timeCreated);
-    let displayCreatedDate =
+    const readableDate = new Date(timeCreated);
+    const displayCreatedDate =
       readableDate.toDateString() + ' ' + readableDate.toLocaleTimeString();
 
-    let readableUpdatedDate = new Date(lastUpdated);
-    let displayUpdatedDate =
+    const readableUpdatedDate = new Date(lastUpdated);
+    const displayUpdatedDate =
       readableUpdatedDate.toDateString() +
       ' ' +
       readableUpdatedDate.toLocaleTimeString();
 
-    let reportDefinitionDetails = {
+    const reportDefinitionDetailsMetaData = {
       name: reportParams.report_name,
       description:
         reportParams.description === '' ? `\u2014` : reportParams.description,
       created: displayCreatedDate,
       lastUpdated: displayUpdatedDate,
       source: reportParams.report_source,
-      recordLimit: 
-        reportParams.report_source != 'Saved search' 
-          ? `\u2014` 
+      recordLimit:
+        reportParams.report_source !== 'Saved search'
+          ? `\u2014`
           : reportParams.core_params.limit,
-      baseUrl: baseUrl,
+      baseUrl,
       // TODO: need better display
       timePeriod: moment.duration(timeDuration).humanize(),
       fileFormat: reportFormat,
       reportHeader:
         reportParams.core_params.hasOwnProperty('header') &&
-        reportParams.core_params.header != ''
+        reportParams.core_params.header !== ''
           ? reportParams.core_params.header
           : `\u2014`,
       reportFooter:
         reportParams.core_params.hasOwnProperty('footer') &&
-        reportParams.core_params.footer != ''
+        reportParams.core_params.footer !== ''
           ? reportParams.core_params.footer
           : `\u2014`,
-      triggerType: triggerType,
+      triggerType,
       scheduleDetails: triggerParams
         ? humanReadableScheduleDetails(data.trigger)
         : `\u2014`,
       status: reportDefinition.status,
       channelName: '',
       emailSubject: delivery.title,
-      emailBody: delivery.textDescription
+      emailBody: delivery.textDescription,
     };
 
     if (delivery.configIds.length > 0) {
-      const [{ config: { name } }] = await getConfigChannel(delivery.configIds);
+      const [
+        {
+          config: { name },
+        },
+      ] = await getConfigChannel(delivery.configIds);
 
-      reportDefinitionDetails.channelName = name;
+      reportDefinitionDetailsMetaData.channelName = name;
     }
-    return reportDefinitionDetails;
+    return reportDefinitionDetailsMetaData;
   };
 
   useEffect(() => {
@@ -481,7 +485,7 @@ export function ReportDefinitionDetails(props: {
                 'opensearch.reports.reportDefinitionsDetails.schedule.breadcrumb.reporting',
                 { defaultMessage: 'Reporting' }
               ),
-              href: '#'
+              href: '#',
             },
             {
               text: i18n.translate(
@@ -489,11 +493,11 @@ export function ReportDefinitionDetails(props: {
                 {
                   defaultMessage: 'Report definition details: {name}',
                   values: {
-                    name: response.report_definition.report_params.report_name
-                  }
+                    name: response.report_definition.report_params.report_name,
+                  },
                 }
-              )
-            }
+              ),
+            },
           ]);
         }
       )
@@ -504,7 +508,7 @@ export function ReportDefinitionDetails(props: {
             {
               defaultMessage:
                 'error when getting report definition details: {error}',
-              values: { error: error }
+              values: { error },
             }
           )
         );
@@ -519,7 +523,7 @@ export function ReportDefinitionDetails(props: {
   };
 
   const fileFormatDownload = (data: { [x: string]: any }) => {
-    let formatUpper = data['fileFormat'];
+    let formatUpper = data.fileFormat;
     formatUpper = fileFormatsUpper[formatUpper];
     return (
       <EuiLink
@@ -539,13 +543,14 @@ export function ReportDefinitionDetails(props: {
         href={`${data.baseUrl}`}
         target="_blank"
       >
-        {data['source']}
+        {data.source}
       </EuiLink>
     );
   };
 
   const changeScheduledReportDefinitionStatus = (statusChange: string) => {
-    let updatedReportDefinition = reportDefinitionRawResponse.report_definition;
+    const updatedReportDefinition =
+      reportDefinitionRawResponse.report_definition;
     if (statusChange === 'Disable') {
       updatedReportDefinition.trigger.trigger_params.enabled = false;
       updatedReportDefinition.status = 'Disabled';
@@ -557,7 +562,7 @@ export function ReportDefinitionDetails(props: {
     httpClient
       .put(`../api/reporting/reportDefinitions/${reportDefinitionId}`, {
         body: JSON.stringify(updatedReportDefinition),
-        params: reportDefinitionId.toString()
+        params: reportDefinitionId.toString(),
       })
       .then(async () => {
         const updatedRawResponse = { report_definition: {} };
@@ -603,7 +608,7 @@ export function ReportDefinitionDetails(props: {
   const generateReportFromDetails = async () => {
     const { httpClient } = props;
     handleLoading(true);
-    let generateReportSuccess = await generateReportFromDefinitionId(
+    const generateReportSuccess = await generateReportFromDefinitionId(
       reportDefinitionId,
       httpClient
     );
@@ -649,59 +654,61 @@ export function ReportDefinitionDetails(props: {
     );
 
   const triggerSection =
-    reportDefinitionDetails.triggerType === ON_DEMAND
-      ? <ReportDetailsComponent
+    reportDefinitionDetails.triggerType === ON_DEMAND ? (
+      <ReportDetailsComponent
+        reportDetailsComponentTitle={i18n.translate(
+          'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.triggerType',
+          { defaultMessage: 'Report trigger' }
+        )}
+        reportDetailsComponentContent={reportDefinitionDetails.triggerType}
+      />
+    ) : (
+      <EuiFlexGroup>
+        <ReportDetailsComponent
           reportDetailsComponentTitle={i18n.translate(
             'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.triggerType',
             { defaultMessage: 'Report trigger' }
           )}
           reportDetailsComponentContent={reportDefinitionDetails.triggerType}
         />
-      : <EuiFlexGroup>
-          <ReportDetailsComponent
-            reportDetailsComponentTitle={i18n.translate(
-              'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.triggerType',
-              { defaultMessage: 'Report trigger' }
-            )}
-            reportDetailsComponentContent={reportDefinitionDetails.triggerType}
-          />
-          <ReportDetailsComponent
-            reportDetailsComponentTitle={i18n.translate(
-              'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.scheduleDetails',
-              { defaultMessage: 'Schedule details' }
-            )}
-            reportDetailsComponentContent={
-              reportDefinitionDetails.scheduleDetails
-            }
-          />
-          <ReportDetailsComponent
-            reportDetailsComponentTitle={i18n.translate(
-              'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.status',
-              { defaultMessage: 'Status' }
-            )}
-            reportDetailsComponentContent={reportDefinitionDetails.status}
-          />
-          <ReportDetailsComponent
-            reportDetailsComponentTitle={''}
-            reportDetailsComponentContent={''}
-          />
-        </EuiFlexGroup>;
+        <ReportDetailsComponent
+          reportDetailsComponentTitle={i18n.translate(
+            'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.scheduleDetails',
+            { defaultMessage: 'Schedule details' }
+          )}
+          reportDetailsComponentContent={
+            reportDefinitionDetails.scheduleDetails
+          }
+        />
+        <ReportDetailsComponent
+          reportDetailsComponentTitle={i18n.translate(
+            'opensearch.reports.reportDefinitionsDetails.schedule.triggerSection.status',
+            { defaultMessage: 'Status' }
+          )}
+          reportDetailsComponentContent={reportDefinitionDetails.status}
+        />
+        <ReportDetailsComponent
+          reportDetailsComponentTitle={''}
+          reportDetailsComponentContent={''}
+        />
+      </EuiFlexGroup>
+    );
 
-  const showDeleteConfirmationModal = showDeleteModal
-    ? <DeleteConfirmationModal />
-    : null;
+  const showDeleteConfirmationModal = showDeleteModal ? (
+    <DeleteConfirmationModal />
+  ) : null;
 
-  const showLoadingModal = showLoading
-    ? <GenerateReportLoadingModal setShowLoading={setShowLoading} />
-    : null;
+  const showLoadingModal = showLoading ? (
+    <GenerateReportLoadingModal setShowLoading={setShowLoading} />
+  ) : null;
 
-  const getConfigChannel = async idChannels => {
+  const getConfigChannel = async (idChannels) => {
     const { httpClient } = props;
     const configId = idChannels[0];
-    const { config_list } = await httpClient.get(
+    const { config_list: configList } = await httpClient.get(
       `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_CONFIG}/${configId}`
     );
-    return config_list;
+    return configList;
   };
 
   const notificationSection = (
@@ -737,13 +744,16 @@ export function ReportDefinitionDetails(props: {
     <>
       <EuiTitle size="l">
         <h1>
-          {!getNavGroupEnabled && i18n.translate('opensearch.reports.reportDefinitionsDetails.title', {
-              defaultMessage: 'Report definition details',
-            }
-          )}
+          {!getNavGroupEnabled &&
+            i18n.translate(
+              'opensearch.reports.reportDefinitionsDetails.title',
+              {
+                defaultMessage: 'Report definition details',
+              }
+            )}
         </h1>
       </EuiTitle>
-      {!getNavGroupEnabled && <EuiSpacer size='s' />}
+      {!getNavGroupEnabled && <EuiSpacer size="s" />}
       <EuiPageContent panelPaddingSize={'l'}>
         <EuiPageHeader>
           <EuiFlexGroup>
@@ -814,9 +824,7 @@ export function ReportDefinitionDetails(props: {
               'opensearch.reports.reportDefinitionsDetails.fields.description',
               { defaultMessage: 'Description' }
             )}
-            reportDetailsComponentContent={
-              reportDefinitionDetails.description
-            }
+            reportDetailsComponentContent={reportDefinitionDetails.description}
           />
           <ReportDetailsComponent
             reportDetailsComponentTitle={i18n.translate(
@@ -830,9 +838,7 @@ export function ReportDefinitionDetails(props: {
               'opensearch.reports.reportDefinitionsDetails.fields.lastUpdated',
               { defaultMessage: 'Last updated' }
             )}
-            reportDetailsComponentContent={
-              reportDefinitionDetails.lastUpdated
-            }
+            reportDetailsComponentContent={reportDefinitionDetails.lastUpdated}
           />
         </EuiFlexGroup>
         <EuiSpacer />

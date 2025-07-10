@@ -8,7 +8,7 @@ import {
   AppMountParameters,
   CoreSetup,
   CoreStart,
-  Plugin
+  Plugin,
 } from '../../../src/core/public';
 import { DataSourcePluginSetup } from '../../../src/plugins/data_source/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../common';
@@ -19,7 +19,7 @@ import { registerAllPluginNavGroups } from './plugin_nav';
 import {
   AppPluginStartDependencies,
   ReportsDashboardsPluginSetup,
-  ReportsDashboardsPluginStart
+  ReportsDashboardsPluginStart,
 } from './types';
 
 export interface ReportingPluginSetupDependencies {
@@ -27,10 +27,8 @@ export interface ReportingPluginSetupDependencies {
 }
 
 export class ReportsDashboardsPlugin
-  implements Plugin<
-      ReportsDashboardsPluginSetup,
-      ReportsDashboardsPluginStart
-    > {
+  implements
+    Plugin<ReportsDashboardsPluginSetup, ReportsDashboardsPluginStart> {
   public setup(
     core: CoreSetup,
     { dataSource }: ReportingPluginSetupDependencies
@@ -41,13 +39,13 @@ export class ReportsDashboardsPlugin
       core.application.register({
         id: PLUGIN_ID,
         title: i18n.translate('opensearch.reports.pluginName', {
-          defaultMessage: PLUGIN_NAME
+          defaultMessage: PLUGIN_NAME,
         }),
         category: {
           id: 'explore',
           label: 'Explore',
           order: 100,
-          euiIconType: 'search'
+          euiIconType: 'search',
         },
         order: 2000,
         async mount(params: AppMountParameters) {
@@ -61,7 +59,7 @@ export class ReportsDashboardsPlugin
             depsStart as AppPluginStartDependencies,
             params
           );
-        }
+        },
       });
     }
     registerAllPluginNavGroups(core);

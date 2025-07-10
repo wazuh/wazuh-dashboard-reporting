@@ -86,10 +86,9 @@ export function ReportsTable(props) {
     handlePermissionsMissingToast,
   } = props;
 
-  const [sortField, setSortField] = useState('timeCreated');
-  const [sortDirection, setSortDirection] = useState('des');
+  const [sortField] = useState('timeCreated');
+  const [sortDirection] = useState('des');
   const [showLoading, setShowLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const handleLoading = (e) => {
     setShowLoading(e);
@@ -161,7 +160,7 @@ export function ReportsTable(props) {
         { defaultMessage: 'Creation time' }
       ),
       render: (date) => {
-        let readable = humanReadableDate(date);
+        const readable = humanReadableDate(date);
         return <EuiText size="s">{readable}</EuiText>;
       },
     },

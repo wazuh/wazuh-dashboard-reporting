@@ -25,6 +25,8 @@ import {
   EuiFormRow,
   EuiCallOut,
 } from '@elastic/eui';
+import ReactMde from 'react-mde';
+import { ReportDefinitionSchemaType } from 'server/model';
 import {
   REPORT_SOURCE_RADIOS,
   PDF_PNG_FILE_FORMAT_OPTIONS,
@@ -32,7 +34,6 @@ import {
   REPORT_SOURCE_TYPES,
   SAVED_SEARCH_FORMAT_OPTIONS,
 } from './report_settings_constants';
-import ReactMde from 'react-mde';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 import {
   ReportDefinitionParams,
@@ -53,10 +54,9 @@ import {
 } from './report_settings_helpers';
 import { TimeRangeSelect } from './time_range';
 import { converter } from '../utils';
-import { ReportDefinitionSchemaType } from 'server/model';
 import { ReportTrigger } from '../report_trigger';
 
-type ReportSettingProps = {
+interface ReportSettingProps {
   edit: boolean;
   editDefinitionId: string;
   reportDefinitionRequest: ReportDefinitionParams;
@@ -69,7 +69,7 @@ type ReportSettingProps = {
   showTimeRangeError: boolean;
   showTriggerIntervalNaNError: boolean;
   showCronError: boolean;
-};
+}
 
 export function ReportSettings(props: ReportSettingProps) {
   const {
@@ -399,20 +399,23 @@ export function ReportSettings(props: ReportSettingProps) {
               response.report_definition;
             const {
               report_params: {
-                core_params: { header, footer },
+                core_params: {
+                  header: headerDefinitions,
+                  footer: footerDefinitions,
+                },
               },
             } = reportDefinition;
             // set header/footer default
-            if (header) {
+            if (headerDefinitions) {
               checkboxIdSelectHeaderFooter.header = true;
               if (!unmounted) {
-                setHeader(header);
+                setHeader(headerDefinitions);
               }
             }
-            if (footer) {
+            if (footerDefinitions) {
               checkboxIdSelectHeaderFooter.footer = true;
               if (!unmounted) {
-                setFooter(footer);
+                setFooter(footerDefinitions);
               }
             }
           })
@@ -500,11 +503,12 @@ export function ReportSettings(props: ReportSettingProps) {
     }
   };
 
-  const setDefaultFileFormat = (fileFormat) => {
+  const setDefaultFileFormat = (fileFormatDefault) => {
     let index = 0;
     for (index = 0; index < PDF_PNG_FILE_FORMAT_OPTIONS.length; ++index) {
       if (
-        fileFormat.toUpperCase() === PDF_PNG_FILE_FORMAT_OPTIONS[index].label
+        fileFormatDefault.toUpperCase() ===
+        PDF_PNG_FILE_FORMAT_OPTIONS[index].label
       ) {
         setFileFormat(PDF_PNG_FILE_FORMAT_OPTIONS[index].id);
       }
@@ -606,7 +610,7 @@ export function ReportSettings(props: ReportSettingProps) {
       }
     });
 
-    if (reportSource == REPORT_SOURCE_TYPES.savedSearch) {
+    if (reportSource === REPORT_SOURCE_TYPES.savedSearch) {
       setSavedSearchRecordLimit(
         response.report_definition.report_params.core_params.limit
       );
@@ -622,9 +626,9 @@ export function ReportSettings(props: ReportSettingProps) {
     );
   };
 
-  const defaultConfigurationEdit = async (httpClientProps) => {
+  const defaultConfigurationEdit = async (httpClientPropsFunction) => {
     let editData = {};
-    await httpClientProps
+    await httpClientPropsFunction
       .get(`../api/reporting/reportDefinitions/${editDefinitionId}`)
       .then(async (response: {}) => {
         editData = response;
@@ -635,18 +639,18 @@ export function ReportSettings(props: ReportSettingProps) {
     return editData;
   };
 
-  const defaultConfigurationCreate = async (httpClientProps) => {
-    let reportSourceOptions = {
+  const defaultConfigurationCreate = async (httpClientPropsFunction) => {
+    const reportSourceOptions = {
       dashboard: [],
       visualizations: [],
       savedSearch: [],
       notebooks: [],
     };
     reportDefinitionRequest.report_params.core_params.report_format = fileFormat;
-    await httpClientProps
+    await httpClientPropsFunction
       .get('../api/reporting/getReportSource/dashboard')
       .then(async (response) => {
-        let dashboardOptions = getDashboardOptions(response['hits']['hits']);
+        const dashboardOptions = getDashboardOptions(response.hits.hits);
         reportSourceOptions.dashboard = dashboardOptions;
         handleDashboards(dashboardOptions);
         if (!edit) {
@@ -657,11 +661,11 @@ export function ReportSettings(props: ReportSettingProps) {
         console.log('error when fetching dashboards:', error);
       });
 
-    await httpClientProps
+    await httpClientPropsFunction
       .get('../api/reporting/getReportSource/visualization')
       .then(async (response) => {
-        let visualizationOptions = getVisualizationOptions(
-          response['hits']['hits']
+        const visualizationOptions = getVisualizationOptions(
+          response.hits.hits
         );
         reportSourceOptions.visualizations = visualizationOptions;
         await handleVisualizations(visualizationOptions);
@@ -670,12 +674,10 @@ export function ReportSettings(props: ReportSettingProps) {
         console.log('error when fetching visualizations:', error);
       });
 
-    await httpClientProps
+    await httpClientPropsFunction
       .get('../api/reporting/getReportSource/search')
       .then(async (response) => {
-        let savedSearchOptions = getSavedSearchOptions(
-          response['hits']['hits']
-        );
+        const savedSearchOptions = getSavedSearchOptions(response.hits.hits);
         reportSourceOptions.savedSearch = savedSearchOptions;
         await handleSavedSearches(savedSearchOptions);
       })
@@ -683,17 +685,17 @@ export function ReportSettings(props: ReportSettingProps) {
         console.log('error when fetching saved searches:', error);
       });
 
-    await httpClientProps
+    await httpClientPropsFunction
       .get('../api/observability/notebooks/savedNotebook')
       .catch((error: any) => {
         console.error(
           'error fetching notebooks, retrying with legacy api',
           error
         );
-        return httpClientProps.get('../api/notebooks/');
+        return httpClientPropsFunction.get('../api/notebooks/');
       })
       .then(async (response: any) => {
-        let notebooksOptions = getNotebooksOptions(response.data);
+        const notebooksOptions = getNotebooksOptions(response.data);
         reportSourceOptions.notebooks = notebooksOptions;
         await handleNotebooks(notebooksOptions);
       })
@@ -808,7 +810,10 @@ export function ReportSettings(props: ReportSettingProps) {
               color="primary"
               title={i18n.translate(
                 'opensearch.reports.reportSettingProps.form.savedSearchLargeRecordLimitWarning',
-                { defaultMessage: 'Generating reports with a large number of records can cause memory issues' }
+                {
+                  defaultMessage:
+                    'Generating reports with a large number of records can cause memory issues',
+                }
               )}
               iconType="iInCircle"
               size="s"
@@ -834,7 +839,7 @@ export function ReportSettings(props: ReportSettingProps) {
     ) : null;
 
   const displayVisualReportsFormatAndMarkdown =
-    reportSourceId != 'savedSearchReportSource' ? (
+    reportSourceId !== 'savedSearchReportSource' ? (
       <div>
         <VisualReportFormatAndMarkdown />
         <SettingsMarkdown />
@@ -865,7 +870,7 @@ export function ReportSettings(props: ReportSettingProps) {
     ) : null;
 
   const displayTimeRangeSelect =
-    reportSourceId != 'notebooksReportSource' ? (
+    reportSourceId !== 'notebooksReportSource' ? (
       <div>
         <TimeRangeSelect
           timeRange={timeRange}

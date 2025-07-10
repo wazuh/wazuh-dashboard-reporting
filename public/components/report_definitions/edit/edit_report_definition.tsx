@@ -14,15 +14,14 @@ import {
   EuiTitle,
   EuiPageBody,
   EuiSpacer,
-  EuiGlobalToastList
+  EuiGlobalToastList,
 } from '@elastic/eui';
-import { ReportSettings } from '../report_settings';
-import { ReportTrigger } from '../report_trigger';
 import { ReportDefinitionSchemaType } from 'server/model';
+import { ReportSettings } from '../report_settings';
 import { converter } from '../utils';
 import {
   permissionsMissingToast,
-  permissionsMissingActions
+  permissionsMissingActions,
 } from '../../utils/utils';
 import { definitionInputValidation } from '../utils/utils';
 import { ReportDelivery } from '../delivery';
@@ -38,23 +37,23 @@ export function EditReportDefinition(props: {
 
   const [
     showSettingsReportNameError,
-    setShowSettingsReportNameError
+    setShowSettingsReportNameError,
   ] = useState(false);
   const [
     settingsReportNameErrorMessage,
-    setSettingsReportNameErrorMessage
+    setSettingsReportNameErrorMessage,
   ] = useState('');
   const [
     showSettingsReportSourceError,
-    setShowSettingsReportSourceError
+    setShowSettingsReportSourceError,
   ] = useState(false);
   const [
     settingsReportSourceErrorMessage,
-    setSettingsReportSourceErrorMessage
+    setSettingsReportSourceErrorMessage,
   ] = useState('');
   const [
     showTriggerIntervalNaNError,
-    setShowTriggerIntervalNaNError
+    setShowTriggerIntervalNaNError,
   ] = useState(false);
   const [showCronError, setShowCronError] = useState(false);
   const [showTimeRangeError, setShowTimeRangeError] = useState(false);
@@ -73,7 +72,7 @@ export function EditReportDefinition(props: {
         ),
         color: 'danger',
         iconType: 'alert',
-        id: 'errorToast'
+        id: 'errorToast',
       };
     }
     // @ts-ignore
@@ -90,12 +89,12 @@ export function EditReportDefinition(props: {
         'opensearch.reports.editReportDefinition.fieldsHaveAnError',
         {
           defaultMessage:
-            'One or more fields have an error. Please check and try again.'
+            'One or more fields have an error. Please check and try again.',
         }
       ),
       color: 'danger',
       iconType: 'alert',
-      id: 'errorToast'
+      id: 'errorToast',
     };
     // @ts-ignore
     setToasts(toasts.concat(errorToast));
@@ -119,7 +118,7 @@ export function EditReportDefinition(props: {
         ),
         color: 'danger',
         iconType: 'alert',
-        id: 'errorToast'
+        id: 'errorToast',
       };
     }
     // @ts-ignore
@@ -130,29 +129,11 @@ export function EditReportDefinition(props: {
     addErrorUpdatingReportDefinitionToastHandler(errorType);
   };
 
-  const addErrorDeletingReportDefinitionToastHandler = () => {
-    const errorToast = {
-      title: i18n.translate(
-        'opensearch.reports.editReportDefinition.errorDeleting',
-        { defaultMessage: 'Error deleting old scheduled report definition.' }
-      ),
-      color: 'danger',
-      iconType: 'alert',
-      id: 'errorDeleteToast'
-    };
-    // @ts-ignore
-    setToasts(toasts.concat(errorToast));
-  };
-
-  const handleErrorDeletingReportDefinitionToast = () => {
-    addErrorDeletingReportDefinitionToastHandler();
-  };
-
   const removeToast = (removedToast: { id: any }) => {
     setToasts(toasts.filter((toast: any) => toast.id !== removedToast.id));
   };
 
-  const reportDefinitionId = props['match']['params']['reportDefinitionId'];
+  const reportDefinitionId = props.match.params.reportDefinitionId;
   let reportDefinition: ReportDefinitionSchemaType;
   let editReportDefinitionRequest = {
     report_params: {
@@ -162,39 +143,39 @@ export function EditReportDefinition(props: {
       core_params: {
         base_url: '',
         report_format: '',
-        time_duration: ''
-      }
+        time_duration: '',
+      },
     },
     delivery: {
       configIds: [],
       title: '',
       textDescription: '',
-      htmlDescription: ''
+      htmlDescription: '',
     },
     trigger: {
-      trigger_type: ''
+      trigger_type: '',
     },
     time_created: 0,
     last_updated: 0,
-    status: ''
+    status: '',
   };
   reportDefinition = editReportDefinitionRequest; // initialize reportDefinition object
 
-  let timeRange = {
+  const timeRange = {
     timeFrom: new Date(),
-    timeTo: new Date()
+    timeTo: new Date(),
   };
 
   if (comingFromError) {
     editReportDefinitionRequest = preErrorData;
   }
 
-  const callUpdateAPI = async metadata => {
+  const callUpdateAPI = async (metadata) => {
     const { httpClient } = props;
     httpClient
       .put(`../api/reporting/reportDefinitions/${reportDefinitionId}`, {
         body: JSON.stringify(metadata),
-        params: reportDefinitionId.toString()
+        params: reportDefinitionId.toString(),
       })
       .then(async () => {
         window.location.assign(`reports-dashboards#/edit=success`);
@@ -240,7 +221,7 @@ export function EditReportDefinition(props: {
       timeRange,
       setShowTimeRangeError,
       setShowCronError
-    ).then(response => {
+    ).then((response) => {
       error = response;
     });
     if (error) {
@@ -257,13 +238,13 @@ export function EditReportDefinition(props: {
     const { httpClient } = props;
     httpClient
       .get(`../api/reporting/reportDefinitions/${reportDefinitionId}`)
-      .then(response => {
+      .then((response) => {
         reportDefinition = response.report_definition;
         const {
           time_created: timeCreated,
           status,
           last_updated: lastUpdated,
-          report_params: { report_name: reportName }
+          report_params: { report_name: reportName },
         } = reportDefinition;
         // configure non-editable fields
         editReportDefinitionRequest.time_created = timeCreated;
@@ -273,15 +254,15 @@ export function EditReportDefinition(props: {
         props.setBreadcrumbs([
           {
             text: 'Reporting',
-            href: '#'
+            href: '#',
           },
           {
             text: `Report definition details: ${reportName}`,
-            href: `#/report_definition_details/${reportDefinitionId}`
+            href: `#/report_definition_details/${reportDefinitionId}`,
           },
           {
-            text: `Edit report definition: ${reportName}`
-          }
+            text: `Edit report definition: ${reportName}`,
+          },
         ]);
       })
       .catch((error: { body: { statusCode: number } }) => {
@@ -303,7 +284,7 @@ export function EditReportDefinition(props: {
         <EuiTitle>
           <h1>
             {i18n.translate('opensearch.reports.editReportDefinition.title', {
-              defaultMessage: 'Edit report definition'
+              defaultMessage: 'Edit report definition',
             })}
           </h1>
         </EuiTitle>
@@ -312,7 +293,7 @@ export function EditReportDefinition(props: {
           edit={true}
           editDefinitionId={reportDefinitionId}
           reportDefinitionRequest={editReportDefinitionRequest}
-          httpClientProps={props['httpClient']}
+          httpClientProps={props.httpClient}
           timeRange={timeRange}
           showSettingsReportNameError={showSettingsReportNameError}
           settingsReportNameErrorMessage={settingsReportNameErrorMessage}
@@ -327,7 +308,7 @@ export function EditReportDefinition(props: {
           edit={true}
           editDefinitionId={reportDefinitionId}
           reportDefinitionRequest={editReportDefinitionRequest}
-          httpClientProps={props['httpClient']}
+          httpClientProps={props.httpClient}
         />
         <EuiSpacer />
         <EuiFlexGroup justifyContent="flexEnd">
@@ -350,7 +331,7 @@ export function EditReportDefinition(props: {
               id={'editReportDefinitionButton'}
             >
               {i18n.translate('opensearch.reports.editReportDefinition.save', {
-                defaultMessage: 'Save Changes'
+                defaultMessage: 'Save Changes',
               })}
             </EuiSmallButton>
           </EuiFlexItem>
