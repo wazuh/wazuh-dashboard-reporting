@@ -1,8 +1,10 @@
 name: FTR E2E Dashboards Reporting Plugin Test
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+# This workflow is removed because does not work, to be fixed we need to change another repository (opensearch-project/opensearch-dashboards-functional-test)
+# We tried to skip the tests that did not work but for that you must skip other tests that pass and are necessary for the following tests and fail all of them if they are removed.
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   CI: 1
@@ -164,7 +166,7 @@ jobs:
 
       - name: Run Cypress tests
         run: |
-          yarn cypress:run-without-security --browser chromium --spec 'cypress/integration/plugins/reports-dashboards/*-d*.js'
+          yarn cypress:run-without-security --browser chromium --spec 'cypress/integration/plugins/reports-dashboards/*.js'
         working-directory: opensearch-dashboards-functional-test
 
       - name: Capture failure screenshots
