@@ -18,6 +18,7 @@ import {
   EuiSmallButton,
 } from '@elastic/eui';
 import CSS from 'csstype';
+import ReactMDE from 'react-mde';
 import {
   getChannelsQueryObject,
   noDeliveryChannelsSelectedMessage,
@@ -26,7 +27,6 @@ import {
 } from './delivery_constants';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 import { ReportDefinitionParams } from '../create/create_report_definition';
-import ReactMDE from 'react-mde';
 import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
@@ -38,7 +38,7 @@ const styles: CSS.Properties = {
 // TODO: add to schema to avoid need for export
 export let includeDelivery = false;
 
-export type ReportDeliveryProps = {
+export interface ReportDeliveryProps {
   edit: boolean;
   editDefinitionId: string;
   reportDefinitionRequest: ReportDefinitionParams;
@@ -49,7 +49,7 @@ export type ReportDeliveryProps = {
   deliverySubjectError: string;
   showDeliveryTextError: boolean;
   deliveryTextError: string;
-};
+}
 
 export function ReportDelivery(props: ReportDeliveryProps) {
   const {
@@ -81,16 +81,13 @@ export function ReportDelivery(props: ReportDeliveryProps) {
   const handleSendNotification = (e: { target: { checked: boolean } }) => {
     setSendNotification(e.target.checked);
     includeDelivery = e.target.checked;
-    if (includeDelivery) {
+    if (!edit) {
       reportDefinitionRequest.delivery.title = 'New report';
       reportDefinitionRequest.delivery.textDescription =
         'New report available to view';
       reportDefinitionRequest.delivery.htmlDescription = converter.makeHtml(
         'New report available to view'
       );
-    } else {
-      reportDefinitionRequest.delivery.title = `\u2014`;
-      reportDefinitionRequest.delivery.textDescription = `\u2014`;
     }
   };
 
@@ -129,60 +126,25 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     };
   };
 
-  const isStatusCodeSuccess = (statusCode: string) => {
-    if (!statusCode) return true;
-    return /^2\d\d/.test(statusCode);
-  };
-
-  const eventToNotification = (event: any) => {
-    const success = event.event.status_list.every((status: any) =>
-      isStatusCodeSuccess(status.delivery_status.status_code)
-    );
-    return {
-      event_source: event.event.event_source,
-      status_list: event.event.status_list,
-      event_id: event.event_id,
-      created_time_ms: event.created_time_ms,
-      last_updated_time_ms: event.last_updated_time_ms,
-      success,
-    };
-  };
-
-  const getNotification = async (id: string) => {
-    const response = await httpClientProps.get(
-      `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_EVENT}/${id}`
-    );
-    return eventToNotification(response.event_list[0]);
-  };
-
   const sendTestNotificationsMessage = async () => {
     if (selectedChannels.length === 0) {
       handleTestMessageConfirmation(noDeliveryChannelsSelectedMessage);
     }
     let testMessageFailures = false;
-    let failedChannels: string[] = [];
+    const failedChannels: string[] = [];
     // for each config ID in the current channels list
     for (let i = 0; i < selectedChannels.length; ++i) {
       try {
-        const eventId = await httpClientProps
+        await httpClientProps
           .get(
             `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.SEND_TEST_MESSAGE}/${selectedChannels[i].id}`,
             {
               query: {
-                feature: 'reports',
+                feature: 'report',
               },
             }
           )
-          .then((response) => response.event_id);
-
-        await getNotification(eventId).then((response) => {
-          if (!response.success) {
-            const error = new Error('Failed to send the test message.');
-            failedChannels.push(response.status_list[0].config_name);
-            error.stack = JSON.stringify(response.status_list, null, 2);
-            throw error;
-          }
-        });
+          .then((response) => response.event_source.reference_id);
       } catch (error) {
         testMessageFailures = true;
       }
@@ -227,7 +189,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
         query: getChannelsQueryObject,
       })
       .then(async (response: any) => {
-        let availableChannels = getAvailableNotificationsChannels(
+        const availableChannels = getAvailableNotificationsChannels(
           response.config_list
         );
         setChannels(availableChannels);
@@ -238,15 +200,15 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           httpClientProps
             .get(`../api/reporting/reportDefinitions/${editDefinitionId}`)
             .then(async (response: any) => {
-              if (response.report_definition.delivery.configIds.length > 0) {
+              const delivery = response.report_definition.delivery;
+              if (delivery.configIds.length > 0) {
                 // add config IDs
                 handleSendNotification({ target: { checked: true } });
-                let delivery = response.report_definition.delivery;
-                let editChannelOptions = [];
+                const editChannelOptions = [];
                 for (let i = 0; i < delivery.configIds.length; ++i) {
                   for (let j = 0; j < availableChannels.length; ++j) {
                     if (delivery.configIds[i] === availableChannels[j].id) {
-                      let editChannelOption = {
+                      const editChannelOption = {
                         label: availableChannels[j].label,
                         id: availableChannels[j].id,
                       };
@@ -256,10 +218,10 @@ export function ReportDelivery(props: ReportDeliveryProps) {
                   }
                 }
                 setSelectedChannels(editChannelOptions);
-                setNotificationSubject(delivery.title);
-                setNotificationMessage(delivery.textDescription);
-                reportDefinitionRequest.delivery = delivery;
               }
+              setNotificationSubject(delivery.title);
+              setNotificationMessage(delivery.textDescription);
+              reportDefinitionRequest.delivery = delivery;
             });
         } else {
           defaultCreateDeliveryParams();
