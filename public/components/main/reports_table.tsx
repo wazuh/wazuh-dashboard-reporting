@@ -93,7 +93,7 @@ export function ReportsTable(props) {
     setShowLoading(e);
   };
 
-  const onDemandDownload = async (id: any, item: any) => {
+  const onDemandDownload = async (id: any) => {
     handleLoading(true);
     await generateReportById(
       id,
@@ -184,7 +184,7 @@ export function ReportsTable(props) {
           </EuiText>
         ) : (
           <EuiLink
-            onClick={() => onDemandDownload(id, item)}
+            onClick={() => onDemandDownload(id)}
             id="landingPageOnDemandDownload"
           >
             {fileFormatsUpper[item.format]} <EuiIcon type="importAction" />
