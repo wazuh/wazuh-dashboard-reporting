@@ -17,7 +17,6 @@ import {
   fileFormatsUpper,
   humanReadableDate,
   generateReportById,
-  sendTestNotificationsMessage,
 } from './main_utils';
 import { GenerateReportLoadingModal } from './loading_modal';
 
@@ -103,7 +102,6 @@ export function ReportsTable(props) {
       handleErrorToast,
       handlePermissionsMissingToast
     );
-    await sendTestNotificationsMessage(id, httpClient, item);
     handleLoading(false);
   };
 
