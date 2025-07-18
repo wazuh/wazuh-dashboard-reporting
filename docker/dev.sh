@@ -107,7 +107,7 @@ export OSD_PORT=${PORT:-5601}
 export IMPOSTER_VERSION=3.44.1
 export SRC=$1
 export OSD_MAJOR_NUMBER=$(echo $OSD_VERSION | cut -d. -f1)
-export COMPOSE_PROJECT_NAME=os-dev-${OSD_VERSION//./}
+export COMPOSE_PROJECT_NAME=os-dev-reporting-${OSD_VERSION//./}
 export WAZUH_STACK=""
 
 if [[ "$OSD_MAJOR_NUMBER" -ge 2 ]]; then
