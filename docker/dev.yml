@@ -53,7 +53,7 @@ services:
       	cfssl gencert -initca /conf/ca.json | cfssljson -bare ca
 
       	echo "Generating servers certificates"
-      	for i in os1 osd imposter; do
+      	for i in os1 osd imposter 192.168.33.10; do
       		echo "Generating cert for $$i"
       		cat /conf/host.json | \
       		sed "s/HOST/$$i/g" | \
@@ -123,8 +123,9 @@ services:
       - node.name=os1
       - discovery.seed_hosts=os1
       - cluster.initial_master_nodes=os1
-      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
-      - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m' # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
       - OPENSEARCH_PATH_CONF=/usr/share/opensearch/config/
     ulimits:
       memlock:
@@ -140,9 +141,19 @@ services:
       - ${SEC_CONFIG_FILE}:${SEC_CONFIG_PATH}/config.yml
       - ./config/${OSD_MAJOR}/os/roles_mapping.yml:${SEC_CONFIG_PATH}/roles_mapping.yml
       - ./config/${OSD_MAJOR}/os/roles.yml:${SEC_CONFIG_PATH}/roles.yml
+      - ./wazuh-indexer/.:/tmp/wazuh-indexer
 
       - os_logs:/var/log/os1
       - os_data:/var/lib/os1
+
+    command: >
+      /bin/bash -c '
+        ls -al /tmp/wazuh-indexer
+        /usr/share/opensearch/bin/opensearch-plugin remove opensearch-reports-scheduler --purge
+        /usr/share/opensearch/bin/opensearch-plugin install -b file:///tmp/wazuh-indexer/$(ls /tmp/wazuh-indexer | grep "wazuh-indexer-reports-scheduler-.*\.zip")
+        echo "Starting OpenSearch with single-node discovery..."
+        /usr/share/opensearch/bin/opensearch -Ediscovery.type=single-node -Ecluster.name=os-dev-cluster -Enode.name=os1
+        '
     ports:
       - 9200:9200
       - 9300:9300
@@ -158,6 +169,20 @@ services:
       interval: 1s
       timeout: 5s
       retries: 120
+
+  imposter:
+    image: outofcoffee/imposter:3.44.1
+
+    # <<: *logging
+    hostname: imposter-osd-${OS_VERSION}
+    networks:
+      - os-dev
+      - mon
+    environment:
+      - JAVA_OPTS="-Xmx512m -Xss512k -Dfile.encoding=UTF-8 -XX:MaxRAM=800m -XX:MaxRAMPercentage=95 -XX:MinRAMPercentage=60A"
+      - MALLOC_ARENA_MAX=1
+    volumes:
+      - ./imposter:/opt/imposter/config
 
   filebeat:
     depends_on:
@@ -208,7 +233,7 @@ services:
       - devel
       - mon
     user: '1000:1000'
-
+    tty: true
     # <<: *logging
     ports:
       - ${OSD_PORT}:5601
@@ -220,6 +245,27 @@ services:
       - wd_certs:/home/node/kbn/certs/
       - ${WAZUH_DASHBOARD_CONF}:/home/node/kbn/config/opensearch_dashboards.yml
       - ./config/${OSD_MAJOR}/osd/wazuh.yml:/home/node/kbn/data/wazuh/config/wazuh.yml
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    profiles:
+      - 'standard'
+    networks:
+      - os-dev
+      - devel
+      - mon
+    restart: unless-stopped
+    volumes:
+        - ./data:/data
+    ports:
+        - 8025:8025
+        - 1025:1025
+    environment:
+        MP_MAX_MESSAGES: 5000
+        MP_DATABASE: /data/mailpit.db
+        MP_SMTP_AUTH_ACCEPT_ANY: 1
+        MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
 networks:
   os-dev:

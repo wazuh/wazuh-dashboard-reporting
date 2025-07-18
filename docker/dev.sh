@@ -157,8 +157,11 @@ up)
  stop)
    docker compose --profile $profile -f dev.yml -p ${COMPOSE_PROJECT_NAME} stop
    ;;
+ start)
+   docker compose --profile $profile -f dev.yml -p ${COMPOSE_PROJECT_NAME} start
+   ;;
  *)
-   echo "[ERROR] Action must be up | down | stop: "
+   echo "[ERROR] Action must be up | down | stop | start: "
    echo
    usage
    ;;
