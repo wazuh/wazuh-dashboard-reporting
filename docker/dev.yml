@@ -248,7 +248,6 @@ services:
 
   mailpit:
     image: axllent/mailpit
-    container_name: mailpit
     profiles:
       - 'standard'
     networks:
