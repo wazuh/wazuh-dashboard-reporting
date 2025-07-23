@@ -127,7 +127,7 @@ fi
 
 case "$2" in
 up)
-   /bin/bash ../scripts/create_docker_networks.sh
+   /bin/bash ./scripts/create_docker_networks.sh
    docker compose --profile $profile -f dev.yml up -Vd
 
    # Display a command to deploy an agent when using the real server

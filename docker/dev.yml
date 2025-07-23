@@ -53,7 +53,7 @@ services:
       	cfssl gencert -initca /conf/ca.json | cfssljson -bare ca
 
       	echo "Generating servers certificates"
-      	for i in os1 osd imposter 192.168.33.10; do
+      	for i in os1 osd imposter; do
       		echo "Generating cert for $$i"
       		cat /conf/host.json | \
       		sed "s/HOST/$$i/g" | \
@@ -123,7 +123,6 @@ services:
       - node.name=os1
       - discovery.seed_hosts=os1
       - cluster.initial_master_nodes=os1
-      - discovery.type=single-node
       - bootstrap.memory_lock=true
       - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
       - OPENSEARCH_PATH_CONF=/usr/share/opensearch/config/
@@ -142,18 +141,10 @@ services:
       - ./config/${OSD_MAJOR}/os/roles_mapping.yml:${SEC_CONFIG_PATH}/roles_mapping.yml
       - ./config/${OSD_MAJOR}/os/roles.yml:${SEC_CONFIG_PATH}/roles.yml
       - ./wazuh-indexer/.:/tmp/wazuh-indexer
-
+      - ./scripts:/scripts
       - os_logs:/var/log/os1
       - os_data:/var/lib/os1
-
-    command: >
-      /bin/bash -c '
-        ls -al /tmp/wazuh-indexer
-        /usr/share/opensearch/bin/opensearch-plugin remove opensearch-reports-scheduler --purge
-        /usr/share/opensearch/bin/opensearch-plugin install -b file:///tmp/wazuh-indexer/$(ls /tmp/wazuh-indexer | grep "wazuh-indexer-reports-scheduler-.*\.zip")
-        echo "Starting OpenSearch with single-node discovery..."
-        /usr/share/opensearch/bin/opensearch -Ediscovery.type=single-node -Ecluster.name=os-dev-cluster -Enode.name=os1
-        '
+    entrypoint: /scripts/entrypoint.sh
     ports:
       - 9200:9200
       - 9300:9300
@@ -255,14 +246,11 @@ services:
       - devel
       - mon
     restart: unless-stopped
-    volumes:
-        - ./data:/data
     ports:
         - 8025:8025
         - 1025:1025
     environment:
         MP_MAX_MESSAGES: 5000
-        MP_DATABASE: /data/mailpit.db
         MP_SMTP_AUTH_ACCEPT_ANY: 1
         MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
