@@ -14,6 +14,7 @@ WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE="${REPO_PATH}/.github/workflows/5_builde
 VERSION_FILE="${REPO_PATH}/VERSION.json"
 VERSION=""
 REVISION="00"
+TAG=false
 CURRENT_VERSION=""
 
 # --- Helper Functions ---
@@ -31,12 +32,16 @@ usage() {
   echo ""
   echo "Parameters:"
   echo "  --version VERSION   Specify the version (e.g., 4.6.0)"
+  echo "                      Required if --tag is not used"
   echo "  --stage STAGE       Specify the stage (e.g., alpha0, beta1, rc2, etc.)"
+  echo "                      Required if --tag is not used"
+  echo "  --tag               Generate a tag"
   echo "  --help              Display this help message"
   echo ""
   echo "Example:"
   echo "  $0 --version 4.6.0 --stage alpha0"
-  echo "  $0 --version 4.6.0 --stage beta1"
+  echo "  $0 --tag --stage alpha1"
+  echo "  $0 --tag"
 }
 
 # Function to perform portable sed in-place editing
@@ -54,6 +59,71 @@ sed_inplace() {
   fi
 }
 
+# Function to run sed with extended regex in a cross-platform way
+sed_extended() {
+  # macOS uses -E, some Linux systems use -r
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -E "$@"
+  else
+    # Try -E first, fall back to -r if it fails
+    sed -E "$@" 2>/dev/null || sed -r "$@"
+  fi
+}
+
+# Function to update JSON file using sed
+update_json() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+
+  # Get the current value of the key at the top level (line 3 for version in package.json)
+  local current_value
+  if [ "$key" = "version" ] && [[ "$file" == *"package.json" ]]; then
+    # For package.json, specifically get the version from line 3 to avoid nested version in pluginPlatform
+    current_value=$(sed -n '3p' "$file" | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+  else
+    current_value=$(grep -o "^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$file" | sed "s/.*\"$key\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/")
+  fi
+
+  if [ "$current_value" = "$value" ]; then
+    # If the value is already correct, do nothing and don't report
+    return
+  fi
+
+  log "Updating $key to $value in $file using sed"
+
+  # Read the file, apply the filter, and write to a temporary file, then replace the original.
+  # WARNING: Using sed for JSON manipulation is fragile and not recommended.
+  log "Attempting to update $key to $value in $file using sed (Note: This is fragile)"
+
+  # Escape key and value for use in sed regex and replacement string
+  # Basic escaping for common sed special characters: &, /, \
+  local escaped_key=$(printf '%s\n' "$key" | sed -e 's/[&/\]/\\&/g')
+  local escaped_value=$(printf '%s\n' "$value" | sed -e 's/[&/\]/\\&/g')
+
+  # For package.json version updates, be more specific to avoid updating nested versions
+  if [ "$key" = "version" ] && [[ "$file" == *"package.json" ]]; then
+    # Update only the first occurrence of version (which should be the top-level one)
+    sed "1,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/{s/^\\([[:space:]]*\\)\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"version\": \"$escaped_value\"/;}" "$file" >"${file}.tmp"
+  else
+    # Use the general approach for other keys
+    sed "s/^\\([[:space:]]*\\)\"$escaped_key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"$escaped_key\": \"$escaped_value\"/g" "$file" >"${file}.tmp"
+  fi
+
+  # Check if sed actually made a change (simple check: compare files)
+  if cmp -s "$file" "${file}.tmp"; then
+    rm -f "${file}.tmp"
+    return
+  else
+    # If files differ, move the temp file to the original file name
+    mv "${file}.tmp" "$file" && log "Successfully updated $key in $file using sed" || {
+      log "ERROR: Failed to move temporary file after updating $key in $file using sed."
+      rm -f "${file}.tmp" # Clean up temp file on error
+      exit 1
+    }
+  fi
+}
+
 # --- Core Logic Functions ---
 
 parse_arguments() {
@@ -67,6 +137,10 @@ parse_arguments() {
     --stage)
       STAGE="$2"
       shift 2
+      ;;
+    --tag)
+      TAG=true
+      shift
       ;;
     --help)
       usage
@@ -83,21 +157,23 @@ parse_arguments() {
 
 # Function to validate input parameters
 validate_input() {
-  if [ -z "$VERSION" ]; then
-    log "ERROR: Version parameter is required"
+  if [ -z "$VERSION" ] && [ "$TAG" != true ]; then
+    log "ERROR: --version is required unless --tag is set"
     usage
     exit 1
   fi
-  if [ -z "$STAGE" ]; then
-    log "ERROR: Stage parameter is required"
+
+  if [ -z "$STAGE" ] && [ "$TAG" != true ]; then
+    log "ERROR: --stage is required unless --tag is set"
     usage
     exit 1
   fi
-  if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [ -n "$VERSION" ] && ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     log "ERROR: Version must be in the format x.y.z (e.g., 4.6.0)"
     exit 1
   fi
-  if ! [[ $STAGE =~ ^[a-zA-Z]+[0-9]+$ ]]; then
+
+  if [ -n "$STAGE" ] && ! [[ $STAGE =~ ^[a-zA-Z]+[0-9]+$ ]]; then
     log "ERROR: Stage must be alphanumeric (e.g., alpha0, beta1, rc2)"
     exit 1
   fi
@@ -328,6 +404,58 @@ update_manual_build_workflow() {
 
 }
 
+# Function to update specFile URL in docker/imposter/wazuh-config.yml
+update_imposter_config() {
+  local new_version="$1"
+  local imposter_config_file="${REPO_PATH}/docker/imposter/wazuh-config.yml"
+  local api_info_file="${REPO_PATH}/docker/imposter/api-info/api_info.json"
+
+  if [ ! -f "$imposter_config_file" ]; then
+    log "WARNING: $imposter_config_file not found. Skipping specFile URL update."
+    return
+  fi
+
+  if [ ! -f "$api_info_file" ]; then
+    log "WARNING: $api_info_file not found. Skipping specFile URL update."
+    return
+  fi
+
+  local replacement
+  if [ "$TAG" = true ]; then
+    replacement="v${VERSION}"
+    if [ -n "$STAGE" ]; then
+      replacement+="-${STAGE}"
+    fi
+  else
+    replacement="${VERSION}"
+  fi
+
+  # Extract current reference from URL
+  local current_spec_ref
+  current_spec_ref=$(grep -oE 'specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]+/' "$imposter_config_file" | sed_extended 's|.*/wazuh/([^/]+)/.*|\1|' | head -n1)
+
+  if [ "$current_spec_ref" = "$replacement" ]; then
+    return
+  fi
+
+  log "Updating specFile URL in $imposter_config_file from $current_spec_ref to $VERSION"
+
+  update_json "$api_info_file" "api_version" "$VERSION" || {
+    log "ERROR: Failed to update apiVersion in $api_info_file"
+    exit 1
+  }
+
+  log "Updating specFile URL in $imposter_config_file to version $new_version"
+
+  # Use sed to replace the version string within the specFile URL
+  # Create a more compatible sed command for macOS
+  sed_inplace "s|specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]*/|specFile: https://raw.githubusercontent.com/wazuh/wazuh/${replacement}/|" "$imposter_config_file" &&
+    log "Successfully updated specFile URL in $imposter_config_file" || {
+    log "ERROR: Failed to update specFile URL in $imposter_config_file using sed."
+    exit 1
+  }
+}
+
 # --- Main Execution ---
 main() {
   # Initialize log file
@@ -350,7 +478,10 @@ main() {
 
   # Perform pre-update checks
   pre_update_checks
-
+  if [ -z "$VERSION" ]; then
+    VERSION=$CURRENT_VERSION # If no version provided, use current version
+  fi
+  
   # Compare versions and determine revision
   compare_versions_and_set_revision
 
@@ -360,6 +491,10 @@ main() {
   update_root_version_json
   update_package_json
   update_manual_build_workflow
+
+  # Update docker/imposter/wazuh-config.yml
+  log "Updating docker/imposter/wazuh-config.yml..."
+  update_imposter_config "$VERSION"
 
   log "File modifications completed."
   log "Repository bump completed successfully. Log file: $LOG_FILE"

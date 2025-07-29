@@ -140,9 +140,11 @@ services:
       - ${SEC_CONFIG_FILE}:${SEC_CONFIG_PATH}/config.yml
       - ./config/${OSD_MAJOR}/os/roles_mapping.yml:${SEC_CONFIG_PATH}/roles_mapping.yml
       - ./config/${OSD_MAJOR}/os/roles.yml:${SEC_CONFIG_PATH}/roles.yml
-
+      - ./wazuh-indexer/.:/tmp/wazuh-indexer
+      - ./scripts:/scripts
       - os_logs:/var/log/os1
       - os_data:/var/lib/os1
+    entrypoint: /scripts/entrypoint.sh
     ports:
       - 9200:9200
       - 9300:9300
@@ -158,6 +160,20 @@ services:
       interval: 1s
       timeout: 5s
       retries: 120
+
+  imposter:
+    image: outofcoffee/imposter:3.44.1
+
+    # <<: *logging
+    hostname: imposter-osd-${OS_VERSION}
+    networks:
+      - os-dev
+      - mon
+    environment:
+      - JAVA_OPTS="-Xmx512m -Xss512k -Dfile.encoding=UTF-8 -XX:MaxRAM=800m -XX:MaxRAMPercentage=95 -XX:MinRAMPercentage=60A"
+      - MALLOC_ARENA_MAX=1
+    volumes:
+      - ./imposter:/opt/imposter/config
 
   filebeat:
     depends_on:
@@ -208,7 +224,7 @@ services:
       - devel
       - mon
     user: '1000:1000'
-
+    tty: true
     # <<: *logging
     ports:
       - ${OSD_PORT}:5601
@@ -220,6 +236,23 @@ services:
       - wd_certs:/home/node/kbn/certs/
       - ${WAZUH_DASHBOARD_CONF}:/home/node/kbn/config/opensearch_dashboards.yml
       - ./config/${OSD_MAJOR}/osd/wazuh.yml:/home/node/kbn/data/wazuh/config/wazuh.yml
+
+  mailpit:
+    image: axllent/mailpit
+    profiles:
+      - 'standard'
+    networks:
+      - os-dev
+      - devel
+      - mon
+    restart: unless-stopped
+    ports:
+        - 8025:8025
+        - 1025:1025
+    environment:
+        MP_MAX_MESSAGES: 5000
+        MP_SMTP_AUTH_ACCEPT_ANY: 1
+        MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
 networks:
   os-dev:

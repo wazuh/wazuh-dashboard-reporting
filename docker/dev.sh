@@ -107,7 +107,7 @@ export OSD_PORT=${PORT:-5601}
 export IMPOSTER_VERSION=3.44.1
 export SRC=$1
 export OSD_MAJOR_NUMBER=$(echo $OSD_VERSION | cut -d. -f1)
-export COMPOSE_PROJECT_NAME=os-dev-${OSD_VERSION//./}
+export COMPOSE_PROJECT_NAME=os-dev-reporting-${OSD_VERSION//./}
 export WAZUH_STACK=""
 
 if [[ "$OSD_MAJOR_NUMBER" -ge 2 ]]; then
@@ -127,7 +127,7 @@ fi
 
 case "$2" in
 up)
-   /bin/bash ../scripts/create_docker_networks.sh
+   /bin/bash ./scripts/create_docker_networks.sh
    docker compose --profile $profile -f dev.yml up -Vd
 
    # Display a command to deploy an agent when using the real server
@@ -157,8 +157,11 @@ up)
  stop)
    docker compose --profile $profile -f dev.yml -p ${COMPOSE_PROJECT_NAME} stop
    ;;
+ start)
+   docker compose --profile $profile -f dev.yml -p ${COMPOSE_PROJECT_NAME} start
+   ;;
  *)
-   echo "[ERROR] Action must be up | down | stop: "
+   echo "[ERROR] Action must be up | down | stop | start: "
    echo
    usage
    ;;

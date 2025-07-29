@@ -20,6 +20,10 @@
   - In MAC:
     `brew install jq`
 
+- Wazuh Indexer Reporting Plugin
+
+  You need to have the Wazuh Indexer reporting plugin package in a `wazuh-indexer` folder. This plugin is required for the reporting functionality to work properly with the Wazuh Indexer.
+
 ## Usage
 
 Use always the provided script to bring up or down the development
@@ -71,7 +75,46 @@ This environment will start a working deployment with:
 - Elasticsearch-exporter - Elasticsearch metrics to Prometheus adapter.
 - OpenSearch single-node cluster.
 - OpenSearch Dashboards development environment.
+- Mailpit - SMTP server for testing email notifications.
 
 The OpenSearch Dashboards development environment includes an already
 bootstrapped Kibana, with all the node modules precompiled and ready to
 use in a development session.
+
+## Email Notifications Configuration
+
+### Mailpit Setup
+
+The development environment includes **Mailpit**, a development SMTP server that captures and displays emails sent from the application without actually sending them.
+
+#### Configuring the Notifications Sender
+
+To configure the notifications sender to use Mailpit:
+
+1. **Access notification settings** in Wazuh Dashboard:
+   - Go to the `Notifications` section
+
+2. **Configure the sender with these settings**:
+   ```
+   SMTP Host: mailpit
+   SMTP Port: 1025
+   Security: None (No SSL/TLS)
+   From Email: noreply@wazuh.local
+   ```
+
+  **Note**: The recipient email address doesn't matter when using Mailpit. All emails will be captured and displayed in the Mailpit interface regardless of the recipient address, and no actual emails will be delivered to real email accounts.
+
+3. **Access Mailpit web interface**:
+   - URL: http://localhost:8025
+   - Here you can view all captured emails during development
+
+#### Testing the Configuration
+
+To verify that notifications are working correctly:
+
+1. Set up a notification rule in Wazuh Dashboard
+2. Generate an event that triggers the notification
+3. Check that the email appears in the Mailpit interface (http://localhost:8025)
+
+**Note**: Mailpit is only available in the development environment and should not be used in production.
+
