@@ -39,7 +39,7 @@ const emptyMessageReportDefinitions = (
             { defaultMessage: 'To learn more, see' }
           )}{' '}
           <EuiLink
-            href="https://opensearch.org/docs/dashboards/reporting/"
+            href="https://docs.opensearch.org/latest/reporting/report-dashboard-index/"
             target="_blank"
           >
             {i18n.translate(
