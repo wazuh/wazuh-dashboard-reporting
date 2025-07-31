@@ -458,13 +458,8 @@ export function ReportDefinitionDetails(props: {
     };
 
     if (delivery.configIds.length > 0) {
-      const [
-        {
-          config: { name },
-        },
-      ] = await getConfigChannel(delivery.configIds);
-
-      reportDefinitionDetailsMetaData.channelName = name;
+      const configsChannels = await getConfigChannel(delivery.configIds);
+      reportDefinitionDetailsMetaData.channelName = configsChannels.map((channel) => channel.config.name).join(', ');
     }
     return reportDefinitionDetailsMetaData;
   };
@@ -702,14 +697,63 @@ export function ReportDefinitionDetails(props: {
     <GenerateReportLoadingModal setShowLoading={setShowLoading} />
   ) : null;
 
-  const getConfigChannel = async (idChannels) => {
-    const { httpClient } = props;
-    const configId = idChannels[0];
-    const { config_list: configList } = await httpClient.get(
-      `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_CONFIG}/${configId}`
+const addToast = (toast: any) => {
+  setToasts(toasts.concat(toast));
+};
+
+const getConfigChannel = async (idChannels: string[]): Promise<any[]> => {
+  const { httpClient } = props;
+
+  if (!idChannels?.length) {
+    return [];
+  }
+
+  try {
+    const results = await Promise.allSettled(
+      idChannels.map(async (id) => {
+        const { config_list: configList } = await httpClient.get(
+          `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_CONFIG}/${id}`
+        );
+        return configList;
+      })
     );
-    return configList;
-  };
+    const successfulConfigs = results
+      .filter((result): result is PromiseFulfilledResult<any> => 
+        result.status === 'fulfilled'
+      )
+      .map(result => result.value)
+      .flat();
+
+    const failedResults = results
+      .map((result, index) => ({ result, id: idChannels[index] }))
+      .filter(({ result }) => result.status === 'rejected');
+
+    if (failedResults.length > 0) {
+      addToast({
+        title: i18n.translate(
+          'opensearch.reports.reportDefinitionsDetails.toast.failedChannelConfigs',
+          { defaultMessage: 'Failed to fetch some channel configs.' }
+        ),
+        color: 'danger',
+        iconType: 'alert',
+        id: 'failedChannelConfigsToast',
+        text: `${failedResults.map(({ id, result }) => `ID: ${id}, Error: ${result.reason}`).join(', ')}`,
+      })
+    }
+    return successfulConfigs;
+  } catch (error) {
+    addToast({
+      title: i18n.translate(
+        'opensearch.reports.reportDefinitionsDetails.toast.errorFetchingChannelConfigs',
+        { defaultMessage: 'Error fetching channel configs.' }
+      ),
+      color: 'danger',
+      iconType: 'alert',
+      id: 'errorFetchingChannelConfigsToast',
+      text: error.message || 'Unknown error occurred'
+    });
+  }
+};
 
   const notificationSection = (
     <EuiFlexGroup>
