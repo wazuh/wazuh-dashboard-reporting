@@ -30,6 +30,7 @@ import { ReportDefinitionParams } from '../create/create_report_definition';
 import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
+import { emailTemplate } from './email-template';
 
 const styles: CSS.Properties = {
   maxWidth: '800px',
@@ -70,9 +71,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
   const [channels, setChannels] = useState([]);
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [notificationSubject, setNotificationSubject] = useState('New report');
-  const [notificationMessage, setNotificationMessage] = useState(
-    'New report available to view'
-  );
+  const [notificationMessage, setNotificationMessage] = useState(emailTemplate);
   const [selectedTab, setSelectedTab] = React.useState<'write' | 'preview'>(
     'write'
   );
