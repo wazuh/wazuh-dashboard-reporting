@@ -1005,7 +1005,7 @@ exports[`<ReportsTable /> panel render empty component 1`] = `
                              
                             <a
                               class="euiLink euiLink--primary"
-                              href="https://docs.opensearch.org/latest/reporting/report-dashboard-index/"
+                              href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
                               rel="noopener noreferrer"
                               target="_blank"
                             >

@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { version } from '../../../package.json';
 
 export const permissionsMissingToast = (action: string) => {
   return {
@@ -27,5 +28,8 @@ export const permissionsMissingActions = {
   UPDATING_DEFINITION: 'updating report definition',
   CREATING_REPORT_DEFINITION: 'creating new report definition.',
 };
+
+// Wazuh: If OpenSearch fix the link, remove this comment and remove the export
+export const versionOpensearchShort = version.split('.').splice(0, 2).join('.');
 
 export const timeRangeMatcher = /time:\(from:(.+?),to:(.+?)\)/;

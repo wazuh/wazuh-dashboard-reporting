@@ -13,6 +13,7 @@ import {
 } from '@elastic/eui';
 import { i18n } from '@osd/i18n';
 import { humanReadableDate } from './main_utils';
+import { versionOpensearchShort } from '../utils/utils';
 
 const emptyMessageReportDefinitions = (
   <EuiEmptyPrompt
@@ -39,7 +40,8 @@ const emptyMessageReportDefinitions = (
             { defaultMessage: 'To learn more, see' }
           )}{' '}
           <EuiLink
-            href="https://docs.opensearch.org/latest/reporting/report-dashboard-index/"
+            // Wazuh: If OpenSearch fix the link, remove this comment and use their link
+            href={`https://docs.opensearch.org/${versionOpensearchShort}/reporting/report-dashboard-index/`}
             target="_blank"
           >
             {i18n.translate(
