@@ -1,4 +1,4 @@
-const emailTemplate =
+export const emailTemplate =
     `<table role="presentation" border="0" cellpadding="0" cellspacing="0"
     width="100%" style="margin-top: 20px;">
     <tr>
@@ -38,7 +38,7 @@ const emailTemplate =
                             <tr>
                                 <td align="center" style="padding: 0 40px;">
                                     <h2
-                                        style="font-size: 26px; font-weight: 200; margin: 0; color: #000000; font-family: 'Manrope', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;">New
+                                        style="font-size: 26px; font-weight: 200; margin: 0; color: #000000; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;">New
                                         Report <span
                                             style="font-weight: 800;">Available</span></h2>
                                 </td>
@@ -49,7 +49,7 @@ const emailTemplate =
                                 <td align="center"
                                     style="padding: 20px 30px 0;">
                                     <p
-                                        style="font-size: 14px; font-weight: 400; color: #000000; line-height: 2.2; margin: 0; font-family: 'Manrope', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                                        style="font-size: 14px; font-weight: 400; color: #000000; line-height: 2.2; margin: 0; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
                                         A new report has been generated and is
                                         now available for
                                         review in your Wazuh platform.<br />
@@ -72,7 +72,7 @@ const emailTemplate =
                                                 style="border-radius: 8px; background: linear-gradient(90deg, #FEDD0B 0%, #F6B71B 100%);">
                                                 <a href="{{reportLink}}"
                                                     target="_blank"
-                                                    style="display: inline-block; padding: 14px 60px; font-size: 14px;; font-weight: 400; color: #000000; text-decoration: none; border-radius: 8px; font-family: 'Manrope', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                                                    style="display: inline-block; padding: 14px 60px; font-size: 14px;; font-weight: 400; color: #000000; text-decoration: none; border-radius: 8px; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
                                                     View Report
                                                 </a>
                                             </td>
@@ -93,7 +93,7 @@ const emailTemplate =
                                 <td align="center"
                                     style="padding: 0 30px 30px;">
                                     <p
-                                        style="font-size: 12px; color: #8690A0; font-family: 'Manrope', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.4;">
+                                        style="font-size: 12px; color: #8690A0; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.4;">
                                         Is the
                                         'Open in Wazuh Dashboards Reports'
                                         button not
