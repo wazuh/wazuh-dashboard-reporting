@@ -81,9 +81,9 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     setSendNotification(e.target.checked);
     includeDelivery = e.target.checked;
     if (!edit) {
-    reportDefinitionRequest.delivery.title = 'New report';
-    reportDefinitionRequest.delivery.textDescription = notificationMessage
-    reportDefinitionRequest.delivery.htmlDescription = notificationMessage;
+      reportDefinitionRequest.delivery.title = 'New report';
+      reportDefinitionRequest.delivery.textDescription = notificationMessage;
+      reportDefinitionRequest.delivery.htmlDescription = notificationMessage;
     }
   };
 
