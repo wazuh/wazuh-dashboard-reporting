@@ -30,7 +30,7 @@ import { ReportDefinitionParams } from '../create/create_report_definition';
 import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
-import { emailTemplate } from './email-template';
+import { emailTemplate } from './tools/email-template';
 
 const styles: CSS.Properties = {
   maxWidth: '800px',
@@ -81,12 +81,9 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     setSendNotification(e.target.checked);
     includeDelivery = e.target.checked;
     if (!edit) {
-      reportDefinitionRequest.delivery.title = 'New report';
-      reportDefinitionRequest.delivery.textDescription =
-        'New report available to view';
-      reportDefinitionRequest.delivery.htmlDescription = converter.makeHtml(
-        'New report available to view'
-      );
+    reportDefinitionRequest.delivery.title = 'New report';
+    reportDefinitionRequest.delivery.textDescription = notificationMessage
+    reportDefinitionRequest.delivery.htmlDescription = notificationMessage;
     }
   };
 
