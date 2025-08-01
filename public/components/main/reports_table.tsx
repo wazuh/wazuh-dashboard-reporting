@@ -19,6 +19,7 @@ import {
   generateReportById,
 } from './main_utils';
 import { GenerateReportLoadingModal } from './loading_modal';
+import { versionOpensearchShort } from '../utils/utils';
 
 const reportStatusOptions = [
   'Created',
@@ -57,7 +58,8 @@ const emptyMessageReports = (
             { defaultMessage: 'To learn more, see' }
           )}{' '}
           <EuiLink
-            href="https://opensearch.org/docs/dashboards/reporting/"
+            // Wazuh: If OpenSearch fix the link, remove this comment and use their link
+            href={`https://docs.opensearch.org/${versionOpensearchShort}/reporting/report-dashboard-index/`}
             target="_blank"
           >
             {i18n.translate(
