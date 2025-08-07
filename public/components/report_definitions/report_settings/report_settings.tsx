@@ -113,6 +113,8 @@ export function ReportSettings(props: ReportSettingProps) {
 
   const [fileFormat, setFileFormat] = useState('pdf');
 
+  const isObservabilityDashboardsPluginAvailable = pluginsService.hasPlugin(observabilityDashboardsPluginId)
+
   const handleDashboards = (e) => {
     setDashboards(e);
   };
@@ -554,7 +556,7 @@ export function ReportSettings(props: ReportSettingProps) {
   };
 
   const getReportSourceRadioOptions = () => {
-    if(!pluginsService.hasPlugin(observabilityDashboardsPluginId)) {
+    if(!isObservabilityDashboardsPluginAvailable) {
       return REPORT_SOURCE_RADIOS.filter((radio) => radio.id !== notebooksReportSourceId)
     }
     return REPORT_SOURCE_RADIOS
@@ -695,23 +697,25 @@ export function ReportSettings(props: ReportSettingProps) {
         console.log('error when fetching saved searches:', error);
       });
 
-    await httpClientPropsFunction
-      .get('../api/observability/notebooks/savedNotebook')
-      .catch((error: any) => {
-        console.error(
-          'error fetching notebooks, retrying with legacy api',
-          error
-        );
-        return httpClientPropsFunction.get('../api/notebooks/');
-      })
-      .then(async (response: any) => {
-        const notebooksOptions = getNotebooksOptions(response.data);
-        reportSourceOptions.notebooks = notebooksOptions;
-        await handleNotebooks(notebooksOptions);
-      })
-      .catch((error) => {
-        console.log('error when fetching notebooks:', error);
-      });
+    if (isObservabilityDashboardsPluginAvailable) {
+      await httpClientPropsFunction
+        .get('../api/observability/notebooks/savedNotebook')
+        .catch((error: any) => {
+          console.error(
+            'error fetching notebooks, retrying with legacy api',
+            error
+          );
+          return httpClientPropsFunction.get('../api/notebooks/');
+        })
+        .then(async (response: any) => {
+          const notebooksOptions = getNotebooksOptions(response.data);
+          reportSourceOptions.notebooks = notebooksOptions;
+          await handleNotebooks(notebooksOptions);
+        })
+        .catch((error) => {
+          console.log('error when fetching notebooks:', error);
+        });
+    }
     return reportSourceOptions;
   };
 
