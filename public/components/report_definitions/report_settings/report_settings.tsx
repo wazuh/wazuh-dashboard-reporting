@@ -33,6 +33,8 @@ import {
   HEADER_FOOTER_CHECKBOX,
   REPORT_SOURCE_TYPES,
   SAVED_SEARCH_FORMAT_OPTIONS,
+  notebooksReportSourceId,
+  observabilityDashboardsPluginId,
 } from './report_settings_constants';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 import {
@@ -55,6 +57,7 @@ import {
 import { TimeRangeSelect } from './time_range';
 import { converter } from '../utils';
 import { ReportTrigger } from '../report_trigger';
+import { pluginsService } from '../../utils/plugins_service';
 
 interface ReportSettingProps {
   edit: boolean;
@@ -174,7 +177,7 @@ export function ReportSettings(props: ReportSettingProps) {
       reportDefinitionRequest.report_params.core_params.report_format = 'csv';
       reportDefinitionRequest.report_params.core_params.limit = savedSearchRecordLimit;
       reportDefinitionRequest.report_params.core_params.excel = true;
-    } else if (e === 'notebooksReportSource') {
+    } else if (e === notebooksReportSourceId) {
       reportDefinitionRequest.report_params.report_source = 'Notebook';
       reportDefinitionRequest.report_params.core_params.base_url =
         getNotebooksBaseUrlCreate(edit, editDefinitionId, fromInContext) +
@@ -550,6 +553,13 @@ export function ReportSettings(props: ReportSettingProps) {
     }
   };
 
+  const getReportSourceRadioOptions = () => {
+    if(!pluginsService.hasPlugin(observabilityDashboardsPluginId)) {
+      return REPORT_SOURCE_RADIOS.filter((radio) => radio.id !== notebooksReportSourceId)
+    }
+    return REPORT_SOURCE_RADIOS
+  };
+
   const setInContextDefaultConfiguration = (response) => {
     const url = window.location.href;
     const source = getReportSourceFromURL(url);
@@ -581,7 +591,7 @@ export function ReportSettings(props: ReportSettingProps) {
       reportDefinitionRequest.report_params.core_params.base_url =
         getSavedSearchBaseUrlCreate(edit, editDefinitionId, true) + id;
     } else if (source === 'notebook') {
-      setReportSourceId('notebooksReportSource');
+      setReportSourceId(notebooksReportSourceId);
       reportDefinitionRequest.report_params.report_source =
         REPORT_SOURCE_RADIOS[3].label;
 
@@ -849,7 +859,7 @@ export function ReportSettings(props: ReportSettingProps) {
     );
 
   const displayNotebooksSelect =
-    reportSourceId === 'notebooksReportSource' ? (
+    reportSourceId === notebooksReportSourceId ? (
       <div>
         <EuiCompressedFormRow
           label="Select notebook"
@@ -870,7 +880,7 @@ export function ReportSettings(props: ReportSettingProps) {
     ) : null;
 
   const displayTimeRangeSelect =
-    reportSourceId !== 'notebooksReportSource' ? (
+    reportSourceId !== notebooksReportSourceId ? (
       <div>
         <TimeRangeSelect
           timeRange={timeRange}
@@ -961,7 +971,7 @@ export function ReportSettings(props: ReportSettingProps) {
           )}
         >
           <EuiCompressedRadioGroup
-            options={REPORT_SOURCE_RADIOS}
+            options={getReportSourceRadioOptions()}
             idSelected={reportSourceId}
             onChange={handleReportSource}
             disabled={edit}

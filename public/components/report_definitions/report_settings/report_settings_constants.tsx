@@ -5,6 +5,10 @@
 
 import { i18n } from '@osd/i18n';
 
+export const observabilityDashboardsPluginId = 'observabilityDashboards';
+
+export const notebooksReportSourceId = 'notebooksReportSource';
+
 export const REPORT_SOURCE_RADIOS = [
   {
     id: 'dashboardReportSource',
@@ -28,7 +32,7 @@ export const REPORT_SOURCE_RADIOS = [
     ),
   },
   {
-    id: 'notebooksReportSource',
+    id: notebooksReportSourceId,
     label: 'Notebook',
   },
 ];
