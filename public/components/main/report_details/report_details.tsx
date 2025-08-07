@@ -193,6 +193,7 @@ export function ReportDetails(props: {
 
   const parseTimePeriod = (queryUrl: string) => {
     let [
+      intervalDateString,
       fromDateString,
       toDateString,
     ]: RegExpMatchArray | null = queryUrl.match(timeRangeMatcher);
