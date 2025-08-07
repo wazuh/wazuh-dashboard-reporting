@@ -123,7 +123,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('render edit, dashboard source', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Dashboard',
@@ -160,7 +160,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -181,7 +181,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('render edit, visualization source', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -218,7 +218,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -239,7 +239,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('render edit, saved search source', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -279,7 +279,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 
@@ -300,7 +300,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('render edit, dashboard source', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -338,7 +338,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -359,7 +359,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('render edit, visualization source', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -399,7 +399,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -431,7 +431,7 @@ describe('<ReportSettings /> panel', () => {
 
     const promise = Promise.resolve();
 
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Dashboard',
@@ -468,7 +468,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -502,7 +502,7 @@ describe('<ReportSettings /> panel', () => {
 
     const promise = Promise.resolve();
 
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -539,7 +539,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -572,7 +572,7 @@ describe('<ReportSettings /> panel', () => {
 
     const promise = Promise.resolve();
 
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -601,7 +601,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 
@@ -622,7 +622,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('simulate click on dashboard combo box', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -662,7 +662,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -686,7 +686,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('simulate click on visualization combo box', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -723,7 +723,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -756,7 +756,7 @@ describe('<ReportSettings /> panel', () => {
 
   test('simulate click on saved search combo box', async () => {
     const promise = Promise.resolve();
-    let report_definition = {
+    let reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -793,7 +793,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 

@@ -70,7 +70,7 @@ jobs:
           CHANGED_FILES=$(cat /tmp/changed_files.txt)
           echo "These are the changed files: $CHANGED_FILES"
           if [[ -n "$CHANGED_FILES" ]]; then
-            yarn lint $(echo "$CHANGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$') --fix
+            yarn lint $(echo "$CHANGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$')
           else
             echo "No matched files to lint."
           fi
