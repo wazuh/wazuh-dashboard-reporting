@@ -68,7 +68,10 @@ export class ReportsDashboardsPlugin
     return {};
   }
 
-  public start(core: CoreStart, plugins: ReportsDashboardsPluginStart): ReportsDashboardsPluginStart {
+  public start(
+    core: CoreStart,
+    plugins: ReportsDashboardsPluginStart
+  ): ReportsDashboardsPluginStart {
     applicationService.init(core.application);
     pluginsService.init(plugins);
     return {};

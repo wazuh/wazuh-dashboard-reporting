@@ -113,7 +113,9 @@ export function ReportSettings(props: ReportSettingProps) {
 
   const [fileFormat, setFileFormat] = useState('pdf');
 
-  const isObservabilityDashboardsPluginAvailable = pluginsService.hasPlugin(observabilityDashboardsPluginId)
+  const isObservabilityDashboardsPluginAvailable = pluginsService.hasPlugin(
+    observabilityDashboardsPluginId
+  );
 
   const handleDashboards = (e) => {
     setDashboards(e);
@@ -556,10 +558,12 @@ export function ReportSettings(props: ReportSettingProps) {
   };
 
   const getReportSourceRadioOptions = () => {
-    if(!isObservabilityDashboardsPluginAvailable) {
-      return REPORT_SOURCE_RADIOS.filter((radio) => radio.id !== notebooksReportSourceId)
+    if (!isObservabilityDashboardsPluginAvailable) {
+      return REPORT_SOURCE_RADIOS.filter(
+        (radio) => radio.id !== notebooksReportSourceId
+      );
     }
-    return REPORT_SOURCE_RADIOS
+    return REPORT_SOURCE_RADIOS;
   };
 
   const setInContextDefaultConfiguration = (response) => {

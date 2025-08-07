@@ -1,12 +1,17 @@
-import { ReportsDashboardsPluginStart } from "public/types";
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-let plugins: ReportsDashboardsPluginStart
+import { ReportsDashboardsPluginStart } from 'public/types';
+
+let plugins: ReportsDashboardsPluginStart;
 
 export const pluginsService = {
   init: (pluginStart: ReportsDashboardsPluginStart) => {
-    plugins = pluginStart
+    plugins = pluginStart;
   },
   hasPlugin: (pluginId: string) => {
     return plugins ? Object.keys(plugins).includes(pluginId) : false;
-  }
+  },
 };
