@@ -13,6 +13,12 @@ import { configure, mount, shallow } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { act } from 'react-dom/test-utils';
 
+jest.mock('../../../utils/plugins_service', () => ({
+  pluginsService: {
+    hasPlugin: jest.fn().mockReturnValue(true),
+  },
+}));
+
 const emptyRequest = {
   report_params: {
     report_name: '',
