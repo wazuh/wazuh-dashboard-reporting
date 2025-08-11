@@ -21,6 +21,7 @@ import {
   ReportsDashboardsPluginSetup,
   ReportsDashboardsPluginStart,
 } from './types';
+import { pluginsService } from './components/utils/plugins_service';
 
 export interface ReportingPluginSetupDependencies {
   dataSource: DataSourcePluginSetup;
@@ -67,8 +68,12 @@ export class ReportsDashboardsPlugin
     return {};
   }
 
-  public start(core: CoreStart): ReportsDashboardsPluginStart {
+  public start(
+    core: CoreStart,
+    plugins: ReportsDashboardsPluginStart
+  ): ReportsDashboardsPluginStart {
     applicationService.init(core.application);
+    pluginsService.init(plugins);
     return {};
   }
 
