@@ -28,7 +28,7 @@ export enum DELIVERY_CHANNEL {
   email = 'Email',
   slack = 'Slack',
   chime = 'Chime',
-  opensearchDashboards = 'OpenSearch Dashboards user',
+  opensearchDashboards = 'Dashboard user',
 }
 
 export enum SCHEDULE_TYPE {
@@ -53,7 +53,7 @@ export enum TRIGGER_TYPE {
 }
 
 export enum DELIVERY_TYPE {
-  opensearchDashboardsUser = 'OpenSearch Dashboards user',
+  opensearchDashboardsUser = 'Dashboard user',
   channel = 'Channel',
 }
 

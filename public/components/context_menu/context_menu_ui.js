@@ -244,7 +244,7 @@ export const permissionsMissingOnGeneration = () => {
   <div class="euiText euiText--small euiToastBody">
     <p>${i18n.translate('opensearch.reports.menu.insufficientPermissions', {
       defaultMessage:
-        'Insufficient permissions. Reach out to your OpenSearch Dashboards administrator.',
+        'Insufficient permissions. Reach out to your administrator.',
     })}</p>
   </div>
   </div>
