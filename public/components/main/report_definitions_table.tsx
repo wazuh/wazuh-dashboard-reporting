@@ -48,7 +48,7 @@ const emptyMessageReportDefinitions = (
               'opensearch.reports.reportDefinitionsTable.emptyMessageReports.getStarted',
               {
                 defaultMessage:
-                  'Get started with OpenSearch Dashboards reporting',
+                  'Get started with dashboard reporting',
               }
             )}
           </EuiLink>
