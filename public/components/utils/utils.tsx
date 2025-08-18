@@ -14,8 +14,7 @@ export const permissionsMissingToast = (action: string) => {
     id: 'permissionsMissingErrorToast' + action.replace(' ', ''),
     text: (
       <p>
-        Insufficient permissions. Reach out to your OpenSearch Dashboards
-        administrator.
+        Insufficient permissions. Reach out to your administrator.
       </p>
     ),
   };
