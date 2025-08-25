@@ -12,11 +12,7 @@ export const permissionsMissingToast = (action: string) => {
     color: 'danger',
     iconType: 'alert',
     id: 'permissionsMissingErrorToast' + action.replace(' ', ''),
-    text: (
-      <p>
-        Insufficient permissions. Reach out to your administrator.
-      </p>
-    ),
+    text: <p>Insufficient permissions. Reach out to your administrator.</p>,
   };
 };
 

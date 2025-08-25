@@ -65,8 +65,7 @@ const emptyMessageReports = (
             {i18n.translate(
               'opensearch.reports.reportsTable.emptyMessageReports.getStarted',
               {
-                defaultMessage:
-                  'Get started with dashboard reporting',
+                defaultMessage: 'Get started with dashboard reporting',
               }
             )}
             <EuiIcon type="popout" />

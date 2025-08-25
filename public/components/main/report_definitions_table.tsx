@@ -47,8 +47,7 @@ const emptyMessageReportDefinitions = (
             {i18n.translate(
               'opensearch.reports.reportDefinitionsTable.emptyMessageReports.getStarted',
               {
-                defaultMessage:
-                  'Get started with dashboard reporting',
+                defaultMessage: 'Get started with dashboard reporting',
               }
             )}
           </EuiLink>

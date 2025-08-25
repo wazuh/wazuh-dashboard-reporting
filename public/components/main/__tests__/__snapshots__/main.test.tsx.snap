@@ -447,11 +447,11 @@ exports[`<Main /> panel render component 1`] = `
                                  
                                 <a
                                   class="euiLink euiLink--primary"
-                                  href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                  href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                   rel="noopener noreferrer"
                                   target="_blank"
                                 >
-                                  Get started with OpenSearch Dashboards reporting
+                                  Get started with dashboard reporting
                                   <svg
                                     aria-hidden="true"
                                     class="euiIcon euiIcon--medium euiIcon-isLoading"
@@ -900,11 +900,11 @@ exports[`<Main /> panel render component 1`] = `
                                    
                                   <a
                                     class="euiLink euiLink--primary"
-                                    href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                    href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                     rel="noopener noreferrer"
                                     target="_blank"
                                   >
-                                    Get started with OpenSearch Dashboards reporting
+                                    Get started with dashboard reporting
                                     <svg
                                       aria-hidden="true"
                                       aria-label="External link"
@@ -1419,11 +1419,11 @@ exports[`<Main /> panel render component after create success 1`] = `
                                  
                                 <a
                                   class="euiLink euiLink--primary"
-                                  href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                  href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                   rel="noopener noreferrer"
                                   target="_blank"
                                 >
-                                  Get started with OpenSearch Dashboards reporting
+                                  Get started with dashboard reporting
                                   <svg
                                     aria-hidden="true"
                                     class="euiIcon euiIcon--medium"
@@ -1872,11 +1872,11 @@ exports[`<Main /> panel render component after create success 1`] = `
                                    
                                   <a
                                     class="euiLink euiLink--primary"
-                                    href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                    href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                     rel="noopener noreferrer"
                                     target="_blank"
                                   >
-                                    Get started with OpenSearch Dashboards reporting
+                                    Get started with dashboard reporting
                                     <svg
                                       aria-label="External link"
                                       class="euiIcon euiIcon--small euiLink__externalIcon"
@@ -2447,11 +2447,11 @@ exports[`<Main /> panel render component after delete success 1`] = `
                                  
                                 <a
                                   class="euiLink euiLink--primary"
-                                  href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                  href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                   rel="noopener noreferrer"
                                   target="_blank"
                                 >
-                                  Get started with OpenSearch Dashboards reporting
+                                  Get started with dashboard reporting
                                   <svg
                                     aria-hidden="true"
                                     class="euiIcon euiIcon--medium"
@@ -2900,11 +2900,11 @@ exports[`<Main /> panel render component after delete success 1`] = `
                                    
                                   <a
                                     class="euiLink euiLink--primary"
-                                    href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                    href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                     rel="noopener noreferrer"
                                     target="_blank"
                                   >
-                                    Get started with OpenSearch Dashboards reporting
+                                    Get started with dashboard reporting
                                     <svg
                                       aria-label="External link"
                                       class="euiIcon euiIcon--small euiLink__externalIcon"
@@ -3476,11 +3476,11 @@ exports[`<Main /> panel render component after edit success 1`] = `
                                  
                                 <a
                                   class="euiLink euiLink--primary"
-                                  href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                  href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                   rel="noopener noreferrer"
                                   target="_blank"
                                 >
-                                  Get started with OpenSearch Dashboards reporting
+                                  Get started with dashboard reporting
                                   <svg
                                     aria-hidden="true"
                                     class="euiIcon euiIcon--medium"
@@ -3929,11 +3929,11 @@ exports[`<Main /> panel render component after edit success 1`] = `
                                    
                                   <a
                                     class="euiLink euiLink--primary"
-                                    href="https://docs.opensearch.org/3.1/reporting/report-dashboard-index/"
+                                    href="https://docs.opensearch.org/3.2/reporting/report-dashboard-index/"
                                     rel="noopener noreferrer"
                                     target="_blank"
                                   >
-                                    Get started with OpenSearch Dashboards reporting
+                                    Get started with dashboard reporting
                                     <svg
                                       aria-label="External link"
                                       class="euiIcon euiIcon--small euiLink__externalIcon"
