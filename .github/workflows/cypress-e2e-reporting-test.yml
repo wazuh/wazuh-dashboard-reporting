@@ -1,8 +1,9 @@
 name: Cypress E2E Dashboards Reporting Plugin Test
 
-on: 
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+# Wazuh: They are removed because they do not work
+# on: 
+#   pull_request:
+#     types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   CI: 1
