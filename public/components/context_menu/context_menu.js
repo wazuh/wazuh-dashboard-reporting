@@ -29,22 +29,6 @@ import {
   popoverMenu,
   popoverMenuDiscover,
 } from './context_menu_ui';
-import { timeRangeMatcher } from '../utils/utils';
-import dateMath from '@elastic/datemath';
-
-/**
-  Wazuh Dashboard Reporting - Generate in-context report
-  This methods is exposed to generate an PDF report receiving a report like a dashboard or visualization plugin
-  This function is based on the following code block: https://github.com/opensearch-project/dashboards-reporting/blob/3.3.0.0/public/components/context_menu/context_menu.js#L169-L174
-**/
-export function generateInContextPDFReport(reportUrl) {
-  const timeRanges = getTimeFieldsFromUrl();
-  const queryUrl = replaceQueryURL(reportUrl);
-  generateInContextReport(timeRanges, queryUrl, 'pdf');
-}
-/**
- * End Wazuh Dashboard Reporting - Generate in-context report
- */
 
 const generateInContextReport = async (
   timeRanges,
@@ -149,6 +133,20 @@ const generateInContextReport = async (
       $('#reportGenerationProgressModal').remove();
     });
 };
+
+/**
+  Wazuh Dashboard Reporting - Generate in-context report
+  This methods is exposed to generate an PDF report receiving a report like a dashboard or visualization plugin
+  This function is based on the following code block: https://github.com/opensearch-project/dashboards-reporting/blob/3.3.0.0/public/components/context_menu/context_menu.js#L169-L174
+**/
+export function generateInContextPDFReport(reportUrl) {
+  const timeRanges = getTimeFieldsFromUrl();
+  const queryUrl = replaceQueryURL(reportUrl);
+  generateInContextReport(timeRanges, queryUrl, 'pdf');
+}
+/**
+ * End Wazuh Dashboard Reporting - Generate in-context report
+ */
 
 // try to match uuid and user entered custom-id followed by '?' in URL, which would be the saved search id for discover URL
 // custom id example: v1s-f00-b4r1-01, Filebeat-Apache-Dashboard-ecs,

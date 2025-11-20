@@ -77,7 +77,7 @@ export class ReportsDashboardsPlugin
     pluginsService.init(plugins);
     return {
       // Wazuh Dashboard Reporting - Generate PDF report exposed method
-      generateInContextPDFReport
+      generateInContextPDFReport,
       // End Wazuh Dashboard Reporting - Generate PDF report exposed method
     };
   }
