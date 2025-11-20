@@ -30,6 +30,14 @@ import {
   popoverMenuDiscover,
 } from './context_menu_ui';
 
+const getApiPath = () => {
+  if (window.location.href.includes('/data-explorer/discover/')) 
+    return '../../../api';
+  if (window.location.href.includes('/data-explorer/discover')) 
+    return '../../api';
+  return '../api';
+}
+
 const generateInContextReport = async (
   timeRanges,
   queryUrl,
@@ -158,6 +166,31 @@ const getUuidFromUrl = () => {
 };
 const isDiscover = () => window.location.href.includes('discover');
 
+/* generate a report if flagged in URL params */
+const checkURLParams = async () => {
+  if (!location.href.includes('#')) return;
+  const [hash, query] = location.href.split('#')[1].split('?');
+  const params = new URLSearchParams(query);
+  const id = params.get(GENERATE_REPORT_PARAM);
+  if (!id) return;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  displayLoadingModal();
+  try {
+    await generateReport(id, 30000);
+    window.history.replaceState(
+      {},
+      '',
+      `#${hash}?${query.replace(GENERATE_REPORT_PARAM_REGEX, '')}`
+    );
+    addSuccessOrFailureToast('success');
+  } catch (error) {
+    console.error(error);
+    addSuccessOrFailureToast('failure');
+  } finally {
+    $('#reportGenerationProgressModal').remove();
+  }
+};
+
 // open Download drop-down
 $(function () {
   $(document).on('click', '#downloadReport', function () {
@@ -170,7 +203,6 @@ $(function () {
           ? popoverMenuDiscover(getUuidFromUrl())
           : popoverMenu(getUuidFromUrl());
         popoverScreen[0].appendChild(reportPopover.children[0]);
-
         positionReportPopover();      
         $('#reportPopover').show();
       } catch (e) {
@@ -258,31 +290,6 @@ $(function () {
   locationHashChanged();
 });
 
-/* generate a report if flagged in URL params */
-const checkURLParams = async () => {
-  if (!location.href.includes('#')) return;
-  const [hash, query] = location.href.split('#')[1].split('?');
-  const params = new URLSearchParams(query);
-  const id = params.get(GENERATE_REPORT_PARAM);
-  if (!id) return;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  displayLoadingModal();
-  try {
-    await generateReport(id, 30000);
-    window.history.replaceState(
-      {},
-      '',
-      `#${hash}?${query.replace(GENERATE_REPORT_PARAM_REGEX, '')}`
-    );
-    addSuccessOrFailureToast('success');
-  } catch (error) {
-    console.error(error);
-    addSuccessOrFailureToast('failure');
-  } finally {
-    $('#reportGenerationProgressModal').remove();
-  }
-};
-
 const isDiscoverNavMenu = (navMenu) => {
   return (
     (navMenu[0].children.length === 5 || navMenu[0].children.length === 6) &&
@@ -307,7 +314,7 @@ const isVisualizationNavMenu = (navMenu) => {
 };
 
 function locationHashChanged() {
-  const observer = new MutationObserver(function (_mutations) {
+  const observer = new MutationObserver(function () {
     const navMenu = document.querySelectorAll(
       'nav.euiHeaderLinks > div.euiHeaderLinks__list'
     );
@@ -346,7 +353,7 @@ function locationHashChanged() {
   });
 }
 
-$(window).one('hashchange', function (_e) {
+$(window).one('hashchange', function () {
   locationHashChanged();
 });
 /**
@@ -366,14 +373,6 @@ $(window).one('hashchange', function (_e) {
 window.onpopstate = history.onpushstate = () => {
   locationHashChanged();
 };
-
-const getApiPath = () => {
-  if (window.location.href.includes('/data-explorer/discover/')) 
-    return '../../../api';
-  if (window.location.href.includes('/data-explorer/discover')) 
-    return '../../api';
-  return '../api';
-}
 
 async function getTenantInfoIfExists() {
   const res = await fetch(`${getApiPath()}/v1/multitenancy/tenant`, {
