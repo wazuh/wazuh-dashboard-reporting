@@ -31,12 +31,12 @@ import {
 } from './context_menu_ui';
 
 const getApiPath = () => {
-  if (window.location.href.includes('/data-explorer/discover/')) 
+  if (window.location.href.includes('/data-explorer/discover/'))
     return '../../../api';
-  if (window.location.href.includes('/data-explorer/discover')) 
+  if (window.location.href.includes('/data-explorer/discover'))
     return '../../api';
   return '../api';
-}
+};
 
 const generateInContextReport = async (
   timeRanges,
@@ -203,7 +203,7 @@ $(function () {
           ? popoverMenuDiscover(getUuidFromUrl())
           : popoverMenu(getUuidFromUrl());
         popoverScreen[0].appendChild(reportPopover.children[0]);
-        positionReportPopover();      
+        positionReportPopover();
         $('#reportPopover').show();
       } catch (e) {
         console.log('error displaying menu:', e);
