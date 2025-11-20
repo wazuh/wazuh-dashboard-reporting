@@ -171,8 +171,7 @@ $(function () {
           : popoverMenu(getUuidFromUrl());
         popoverScreen[0].appendChild(reportPopover.children[0]);
 
-        positionReportPopover();
-      
+        positionReportPopover();      
         $('#reportPopover').show();
       } catch (e) {
         console.log('error displaying menu:', e);
@@ -198,16 +197,16 @@ $(function () {
   $(document).on('click', '#generateCSV', function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
-    const saved_search_id = getUuidFromUrl()[1];
-    generateInContextReport(timeRanges, queryUrl, 'csv', { saved_search_id });
+    const savedSearchId = getUuidFromUrl()[1];
+    generateInContextReport(timeRanges, queryUrl, 'csv', { savedSearchId });
   });
 
   // generate XLSX onclick
   $(document).on('click', '#generateXLSX', function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
-    const saved_search_id = getUuidFromUrl()[1];
-    generateInContextReport(timeRanges, queryUrl, 'xlsx', { saved_search_id });
+    const savedSearchId = getUuidFromUrl()[1];
+    generateInContextReport(timeRanges, queryUrl, 'xlsx', { savedSearchId });
   });
 
   // navigate to Create report definition page with report source and pre-set time range
@@ -308,7 +307,7 @@ const isVisualizationNavMenu = (navMenu) => {
 };
 
 function locationHashChanged() {
-  const observer = new MutationObserver(function (mutations) {
+  const observer = new MutationObserver(function (_mutations) {
     const navMenu = document.querySelectorAll(
       'nav.euiHeaderLinks > div.euiHeaderLinks__list'
     );
@@ -324,6 +323,7 @@ function locationHashChanged() {
           return;
         }
         const menuItem = document.createElement('div');
+        // eslint-disable-next-line no-unsanitized/property
         menuItem.innerHTML = getMenuItem(
           i18n.translate('opensearch.reports.menu.name', {
             defaultMessage: 'Reporting',
@@ -346,7 +346,7 @@ function locationHashChanged() {
   });
 }
 
-$(window).one('hashchange', function (e) {
+$(window).one('hashchange', function (_e) {
   locationHashChanged();
 });
 /**
@@ -368,9 +368,11 @@ window.onpopstate = history.onpushstate = () => {
 };
 
 const getApiPath = () => {
-  if (window.location.href.includes('/data-explorer/discover/')) return '../../../api'
-  if (window.location.href.includes('/data-explorer/discover')) return '../../api'
-  return '../api'
+  if (window.location.href.includes('/data-explorer/discover/')) 
+    return '../../../api';
+  if (window.location.href.includes('/data-explorer/discover')) 
+    return '../../api';
+  return '../api';
 }
 
 async function getTenantInfoIfExists() {
