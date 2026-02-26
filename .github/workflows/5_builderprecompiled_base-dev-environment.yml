@@ -9,6 +9,7 @@
 # - 💻 Docker-Based Environment Setup: Prepares a Docker environment with OpenSearch Dashboards or Kibana.
 # - ⚙️ Custom Command Execution: Runs any specified command on the downloaded source code.
 # - 📦 Artifact and Coverage Upload: Uploads build artifacts and test coverage results to GitHub when configured.
+# - 🔄 Yarn Cache: Caches yarn dependencies to speed up builds and improve resilience to registry errors.
 #
 # 🔗 Designed for: Easy integration and reuse by other workflows.
 
@@ -61,43 +62,70 @@ jobs:
           ref: ${{ inputs.reference }}
           path: wazuh-dashboards-reporting
 
+      - name: Step 02 - Get versions for cache key
+        id: versions
+        run: |
+          platform_version=$(jq -r '.opensearchDashboards.version | select(. != null)' wazuh-dashboards-reporting/package.json)
+          wazuh_version=$(jq -r '.wazuh.version' wazuh-dashboards-reporting/package.json)
+          echo "combined_version=${platform_version}-${wazuh_version}" >> $GITHUB_OUTPUT
+          echo "Platform version: $platform_version"
+          echo "Wazuh version: $wazuh_version"
+
+      - name: Step 03 - Setup yarn cache directory
+        run: |
+          mkdir -p ${{ github.workspace }}/.yarn-cache
+          sudo chown 1000:1000 ${{ github.workspace }}/.yarn-cache
+
+      - name: Step 04 - Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.yarn-cache
+          key: yarn-cache-${{ steps.versions.outputs.combined_version }}-${{ hashFiles('wazuh-dashboards-reporting/yarn.lock') }}
+          restore-keys: |
+            yarn-cache-${{ steps.versions.outputs.combined_version }}-
+            yarn-cache-
+
       # Fix source code ownership so the internal user of the Docker
       # container is also owner.
-      - name: Step 02 - Change code ownership
+      - name: Step 05 - Change code ownership
         run: sudo chown 1000:1000 -R wazuh-dashboards-reporting;
 
-      - name: Step 03 - Set up the environment and run the command
+      - name: Step 06 - Set up the environment and run the command
         run: |
-          # Read the platform version from the package.json file
-          echo "Reading the platform version from the package.json...";
-          platform_version=$(jq -r '.opensearchDashboards.version | select(. != null)' wazuh-dashboards-reporting/package.json);
-          echo "Plugin platform version: $platform_version";
-
-          # Get Wazuh version and concatenate with platform version
-          wazuh_version=$(jq -r '.wazuh.version' wazuh-dashboards-reporting/package.json);
-          echo "Wazuh version: $wazuh_version";
-          
-          # Concatenate versions in format: <Opensearch version>-<Wazuh version>
-          combined_version="${platform_version}-${wazuh_version}";
+          combined_version="${{ steps.versions.outputs.combined_version }}"
           echo "Combined platform version: $combined_version";
 
           # Up the environment and run the command
           docker run -t --rm \
             -e OPENSEARCH_DASHBOARDS_VERSION=${combined_version} \
-            -v `pwd`/wazuh-dashboards-reporting:/home/node/kbn/plugins/wazuh-dashboards-reporting \
+            -v ${{ github.workspace }}/wazuh-dashboards-reporting:/home/node/kbn/plugins/wazuh-dashboards-reporting \
+            -v ${{ github.workspace }}/.yarn-cache:/home/node/.cache/yarn \
             ${{ inputs.docker_run_extra_args }} \
             quay.io/wazuh/osd-dev:${combined_version} \
             bash -c '
               yarn config set registry https://registry.yarnpkg.com;
-              cd /home/node/kbn/plugins/wazuh-dashboards-reporting && yarn && ${{ inputs.command }};
+              yarn config set network-timeout 300000;
+              cd /home/node/kbn/plugins/wazuh-dashboards-reporting && \
+              for attempt in 1 2 3; do
+                echo "Yarn install attempt $attempt of 3...";
+                yarn --frozen-lockfile --prefer-offline && break;
+                if [ $attempt -lt 3 ]; then
+                  echo "Yarn install failed, retrying in 15 seconds...";
+                  sleep 15;
+                else
+                  echo "Yarn install failed after 3 attempts";
+                  exit 1;
+                fi;
+              done && \
+              ${{ inputs.command }};
             '
-      - name: Get the plugin version and and format reference name
+      - name: Step 07 - Get the plugin version and format reference name
         run: |
           echo "githubReference=$(echo ${{ inputs.reference }} | sed 's/\//-/g')" >> $GITHUB_ENV
           echo "version=$(jq -r '.wazuh.version' $(pwd)/wazuh-dashboards-reporting/package.json)" >> $GITHUB_ENV
           echo "revision=$(jq -r '.wazuh.revision' $(pwd)/wazuh-dashboards-reporting/package.json)" >> $GITHUB_ENV
 
-      - name: Step 04 - Upload artifact to GitHub
+      - name: Step 08 - Upload artifact to GitHub
         if: ${{ inputs.artifact_name && inputs.artifact_path }}
         uses: actions/upload-artifact@v4
         with:
@@ -105,7 +133,7 @@ jobs:
           path: ${{ inputs.artifact_path }}
           overwrite: true
 
-      - name: Step 05 - Upload coverage results to GitHub
+      - name: Step 09 - Upload coverage results to GitHub
         if: ${{ inputs.notify_jest_coverage_summary && github.event_name == 'pull_request' }}
         uses: AthleticNet/comment-test-coverage@1.2.2
         with:
