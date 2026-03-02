@@ -1,6 +1,8 @@
 name: Cypress E2E Dashboards Reporting Plugin Test
 
-on: [pull_request, push]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   CI: 1
@@ -18,11 +20,13 @@ jobs:
         os: [ubuntu-latest]
         jdk: [21]
     runs-on: ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.jdk }}
 
       - name: Checkout OpenSearch Dashboards
@@ -108,9 +112,9 @@ jobs:
           curl -fL --retry 5 --retry-delay 2 -o plugin-artifacts/reports-scheduler.zip "$DIR_URL/$FILE"
 
       - name: Download OpenSearch
-        uses: peternied/download-file@v2
-        with:
-          url: https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz
+        run: |
+          wget 'https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz' --retry-connrefused --tries=3 --no-dns-cache --progress=bar:force:noscroll --verbose
+        shell: bash
 
       - name: Extract OpenSearch
         run: |
@@ -151,7 +155,7 @@ jobs:
         working-directory: OpenSearch-Dashboards
         shell: bash
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ steps.tool-versions.outputs.node_version }}
           registry-url: 'https://registry.npmjs.org'
@@ -178,10 +182,10 @@ jobs:
       - name: Check If OpenSearch Dashboards Is Ready
         if: ${{ runner.os == 'Linux' }}
         run: |
-          if timeout 1200 grep -q "bundles compiled successfully after" <(tail -n0 -f dashboard.log); then
+          if timeout 2400 grep -q "bundles compiled successfully after" <(tail -n0 -f dashboard.log); then
             echo "OpenSearch Dashboards compiled successfully."
           else
-            echo "Timeout for 1200 seconds reached. OpenSearch Dashboards did not finish compiling."
+            echo "Timeout for 2400 seconds reached. OpenSearch Dashboards did not finish compiling."
             exit 1
           fi
         working-directory: OpenSearch-Dashboards
@@ -205,14 +209,14 @@ jobs:
         working-directory: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
       - name: Capture failure screenshots
-        uses: actions/upload-artifact@v4.4.0
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots-${{ matrix.os }}
           path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}/.cypress/screenshots
 
       - name: Capture test video
-        uses: actions/upload-artifact@v4.4.0
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-videos-${{ matrix.os }}
