@@ -7,7 +7,7 @@ This script automates the process of updating the version and stage in the Wazuh
 ### Usage
 
 ```bash
-./repository_bumper.sh --version VERSION --stage STAGE [--tag] [--help]
+./repository_bumper.sh --version VERSION --stage STAGE [--tag] [--set-as-main] [--help]
 ```
 
 #### Parameters
@@ -23,6 +23,9 @@ This script automates the process of updating the version and stage in the Wazuh
 - `--tag`
   Generate a tag version format.
 
+- `--set-as-main`
+  Enables main branch mode: version values are updated while branch references pointing to `main` are preserved.
+
 - `--help`
   Shows help and exits.
 
@@ -31,6 +34,7 @@ This script automates the process of updating the version and stage in the Wazuh
 ```bash
 ./repository_bumper.sh --version 4.6.0 --stage alpha0
 ./repository_bumper.sh --version 4.6.0 --stage beta1
+./repository_bumper.sh --version 5.1.0 --stage alpha1 --set-as-main
 ./repository_bumper.sh --tag --stage alpha1
 ./repository_bumper.sh --tag
 ```
@@ -48,7 +52,10 @@ This script automates the process of updating the version and stage in the Wazuh
    - `.github/workflows/5_builderpackage_reporting_plugin.yml`: Updates the default value of the `reference` input.
    - `docker/imposter/wazuh-config.yml`: Updates the specFile URL with the new version.
    - `docker/imposter/api-info/api_info.json`: Updates the API version information.
-5. **Logs all actions** to a log file in the `tools` directory.
+5. **Handles branch reference replacements**:
+  - If `--set-as-main` is used, branch references to `main` are preserved.
+  - Otherwise, `main` references in supported workflows are replaced with the target version.
+6. **Logs all actions** to a log file in the `tools` directory.
 
 ### Notes
 
@@ -61,6 +68,12 @@ This script automates the process of updating the version and stage in the Wazuh
 - `VERSION.json`
 - `package.json`
 - `CHANGELOG.md`
+- `.github/workflows/5_builderpackage_reporting_plugin.yml` (only when not using `--set-as-main`)
+- `.github/workflows/5_builderprecompiled_base-dev-environment.yml` (only when not using `--set-as-main`)
+- `.github/workflows/6_builderpackage_reporting_plugin.yml` (only when not using `--set-as-main`)
+- `.github/workflows/6_builderprecompiled_base-dev-environment.yml` (only when not using `--set-as-main`)
+- `.github/workflows/dashboards-reports-test-and-build-workflow.yml` (only when not using `--set-as-main`)
+- `.github/workflows/lint.yml` (only when not using `--set-as-main`)
 - `docker/imposter/wazuh-config.yml`
 - `docker/imposter/api-info/api_info.json`
 
