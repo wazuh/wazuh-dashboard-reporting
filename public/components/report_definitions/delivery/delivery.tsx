@@ -170,7 +170,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
         return response.text();
       })
       .then(function (data) {
-        if (data.includes('opensearch-notifications')) {
+        if (data.includes('wazuh-indexer-notifications')) {
           setIsHidden(false);
           return;
         }
