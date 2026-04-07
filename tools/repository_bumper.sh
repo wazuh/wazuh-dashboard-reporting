@@ -16,8 +16,8 @@ VERSION_FILE="${REPO_PATH}/VERSION.json"
 VERSION=""
 REVISION="00"
 TAG=false
-set_as_main=""
-skip_urls="no"
+SET_AS_MAIN=""
+SKIP_URLS="no"
 CURRENT_VERSION=""
 
 # --- Helper Functions ---
@@ -221,7 +221,7 @@ parse_arguments() {
       shift
       ;;
     --set-as-main)
-      set_as_main="yes"
+      SET_AS_MAIN="yes"
       shift 1
       ;;
     --help)
@@ -236,10 +236,10 @@ parse_arguments() {
     esac
   done
 
-  if [[ -n "$set_as_main" ]]; then
-    skip_urls="yes"
+  if [[ -n "$SET_AS_MAIN" ]]; then
+    SKIP_URLS="yes"
   else
-    skip_urls="no"
+    SKIP_URLS="no"
   fi
 }
 
@@ -493,7 +493,7 @@ update_manual_build_workflow() {
 }
 
 update_branch_reference_defaults() {
-  if [[ "$skip_urls" == "yes" ]]; then
+  if [[ "$SKIP_URLS" == "yes" ]]; then
     log "skip_urls is yes (--set-as-main): leaving workflow branch defaults unchanged"
     return 0
   fi
@@ -597,7 +597,7 @@ main() {
   # Compare versions and determine revision
   compare_versions_and_set_revision
 
-  if [[ "$skip_urls" == "yes" ]]; then
+  if [[ "$SKIP_URLS" == "yes" ]]; then
     log "Main branch mode enabled: version values will be updated and branch references will remain pointing to main."
   else
     log "Freeze mode enabled: version values and branch references will be updated."
