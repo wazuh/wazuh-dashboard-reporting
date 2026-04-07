@@ -16,6 +16,7 @@ All notable changes to the Wazuh app project will be documented in this file.
 ### Fixed
 
 - Fixed invalid date error in report details [#53](https://github.com/wazuh/wazuh-dashboard-reporting/pull/53)
+- Fixed the validation of the notification plugin [#105](https://github.com/wazuh/wazuh-dashboard-reporting/pull/105) 
 
 ### Removed
 
