@@ -5,8 +5,8 @@
   "license": "Apache-2.0",
   "main": "index.ts",
   "opensearchDashboards": {
-    "version": "3.5.0",
-    "templateVersion": "3.5.0"
+    "version": "3.6.0",
+    "templateVersion": "3.6.0"
   },
   "wazuh": {
     "version": "5.0.0",
