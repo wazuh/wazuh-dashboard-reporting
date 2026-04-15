@@ -10,7 +10,7 @@
   },
   "wazuh": {
     "version": "5.0.0",
-    "revision": "00"
+    "revision": "01"
   },
   "scripts": {
     "osd": "node ../../scripts/osd",
