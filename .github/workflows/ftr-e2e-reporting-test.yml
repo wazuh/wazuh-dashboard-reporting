@@ -1,6 +1,10 @@
 name: FTR E2E Dashboards Reporting Plugin Test
 
-on: [pull_request, push]
+# This workflow is removed because does not work, to be fixed we need to change another repository (opensearch-project/opensearch-dashboards-functional-test)
+# We tried to skip the tests that did not work but for that you must skip other tests that pass and are necessary for the following tests and fail all of them if they are removed.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   CI: 1
@@ -18,6 +22,7 @@ jobs:
         os: [ubuntu-latest]
         jdk: [21]
     runs-on: ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Set up JDK
@@ -77,9 +82,9 @@ jobs:
           curl -fL --retry 5 -o plugin-artifacts/reports-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
       - name: Download OpenSearch
-        uses: peternied/download-file@v2
-        with:
-          url: https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz
+        run: |
+          wget 'https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz' --retry-connrefused --tries=3 --no-dns-cache --progress=bar:force:noscroll --verbose
+        shell: bash
 
       - name: Extract OpenSearch
         run: |
@@ -206,14 +211,14 @@ jobs:
         working-directory: opensearch-dashboards-functional-test
 
       - name: Capture failure screenshots
-        uses: actions/upload-artifact@v4.4.0
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots-${{ matrix.os }}
           path: opensearch-dashboards-functional-test/cypress/screenshots
 
       - name: Capture test video
-        uses: actions/upload-artifact@v4.4.0
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-videos-${{ matrix.os }}
