@@ -1,6 +1,8 @@
 name: Test and Build OpenSearch Dashboards Reports
 
-on: [pull_request, push]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   PLUGIN_NAME: reportsDashboards
@@ -9,6 +11,7 @@ env:
 
 jobs:
   Get-CI-Image-Tag:
+    if: github.event.pull_request.draft == false
     uses: opensearch-project/opensearch-build/.github/workflows/get-ci-image-tag.yml@main
     with:
       product: opensearch-dashboards
@@ -16,6 +19,7 @@ jobs:
   linux-build:
     needs: Get-CI-Image-Tag
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     container:
       # using the same image which is used by opensearch-build team to build the OpenSearch Distribution
       # this image tag is subject to change as more dependencies and updates will arrive over time
@@ -46,7 +50,7 @@ jobs:
         working-directory: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
       - name: OpenSearch Dashboards Plugin Bootstrap and test
-        uses: nick-fields/retry@v1
+        uses: nick-fields/retry@v2.9.0
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -60,7 +64,7 @@ jobs:
                                  whoami && yarn osd bootstrap --single-version=loose && yarn test --coverage"
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           flags: dashboards-report
           directory: ./OpenSearch-Dashboards/plugins/
@@ -77,80 +81,79 @@ jobs:
                                whoami && yarn build && mv -v ./build/*.zip ./build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}.zip"
 
       - name: Upload Artifact For Linux
-        uses: actions/upload-artifact@v4.4.0
+        uses: actions/upload-artifact@v4
         with:
           name: dashboards-reports-linux
           path: ./OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}/build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}.zip
 
-  windows-mac-builds:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
+  # Commenting out windows and macos build jobs as they are not required for now.
+  # windows-build:
+  #   runs-on: windows-latest
+  #   steps:
 
-    steps:
-      - name: Enable longer filenames (Windows only)
-        if: runner.os == 'Windows'
-        run: git config --system core.longpaths true
+  #     # Enable longer filenames for windows
+  #     - name: Enable longer filenames
+  #       run: git config --system core.longpaths true
 
-      - name: Checkout OpenSearch Dashboards
-        uses: actions/checkout@v4
-        with:
-          repository: opensearch-project/Opensearch-Dashboards
-          ref: ${{ env.OPENSEARCH_DASHBOARDS_VERSION }}
-          path: OpenSearch-Dashboards
+  #     - name: Checkout OpenSearch Dashboards
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: opensearch-project/Opensearch-Dashboards
+  #         ref: ${{ env.OPENSEARCH_VERSION }}
+  #         path: OpenSearch-Dashboards
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: 'OpenSearch-Dashboards/.nvmrc'
-          registry-url: 'https://registry.npmjs.org'
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: '../OpenSearch-Dashboards/.nvmrc'
+  #         registry-url: 'https://registry.npmjs.org'
 
-      - name: Install Yarn
-        shell: bash
-        run: |
-          YARN_VERSION=$(node -p "require('./OpenSearch-Dashboards/package.json').engines.yarn")
-          echo "Installing yarn@$YARN_VERSION"
-          npm i -g yarn@$YARN_VERSION
+  #     - name: Install Yarn
+  #       # Need to use bash to avoid having a windows/linux specific step
+  #       shell: bash
+  #       run: |
+  #         YARN_VERSION=$(node -p "require('../OpenSearch-Dashboards/package.json').engines.yarn")
+  #         echo "Installing yarn@$YARN_VERSION"
+  #         npm i -g yarn@$YARN_VERSION
 
-      - run: node -v
-      - run: yarn -v
+  #     - run: node -v
+  #     - run: yarn -v
 
-      - name: Checkout Plugin
-        uses: actions/checkout@v4
-        with:
-          path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
+  #     - name: Checkout Plugin	
+  #       uses: actions/checkout@v4
+  #       with:	
+  #         path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
-      - name: Set env
-        run: |
-          opensearch_version=$(node -p "require('./opensearch_dashboards.json').opensearchDashboardsVersion")
-          plugin_version=$(node -p "require('./opensearch_dashboards.json').version")
-          echo "OPENSEARCH_VERSION=$opensearch_version" >> $GITHUB_ENV
-          echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
-        shell: bash
-        working-directory: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
+  #     - name: Set env
+  #       run: |
+  #         opensearch_version=$(node -p "require('./opensearch_dashboards.json').opensearchDashboardsVersion")
+  #         plugin_version=$(node -p "require('./opensearch_dashboards.json').version")
+  #         echo "OPENSEARCH_VERSION=$opensearch_version" >> $GITHUB_ENV
+  #         echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
+  #       shell: bash
+  #       working-directory: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
-      - name: OpenSearch Dashboards Plugin Bootstrap
-        uses: nick-fields/retry@v1
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: cd OpenSearch-Dashboards && yarn osd bootstrap --single-version=loose
+  #     - name: OpenSearch Dashboards Plugin Bootstrap
+  #       uses: nick-fields/retry@v1
+  #       with:
+  #         timeout_minutes: 30
+  #         max_attempts: 3
+  #         command: cd OpenSearch-Dashboards && yarn osd bootstrap --single-version=loose
 
-      - name: Test
-        uses: nick-fields/retry@v1
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: cd OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }} && yarn test
+  #     - name: Test
+  #       uses: nick-fields/retry@v2.9.0
+  #       with:
+  #         timeout_minutes: 30
+  #         max_attempts: 3
+  #         command: yarn test
 
-      - name: Build Artifact
-        run: |
-          cd ./OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }} && yarn build
-          mv ./build/*.zip ./build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}-${{ runner.os }}.zip
+  #    - name: Build Artifact
+  #      run: |
+  #        cd ./OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }} && yarn build
+  #        mv ./build/*.zip ./build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}-${{ runner.os }}.zip
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: dashboards-reports-${{ runner.os }}
-          path: ./OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}/build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}-${{ runner.os }}.zip
+  #    - name: Upload Artifact
+  #      uses: actions/upload-artifact@v4.4.0
+  #      with:
+  #        name: dashboards-reports-${{ runner.os }}
+  #        path: ./OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}/build/${{ env.ARTIFACT_NAME }}-${{ env.PLUGIN_VERSION }}-${{ runner.os }}.zip
