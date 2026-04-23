@@ -10,6 +10,12 @@ import 'babel-polyfill';
 import 'regenerator-runtime';
 import httpClientMock from '../../../../../test/httpMockClient';
 
+jest.mock('../../../utils/plugins_service', () => ({
+  pluginsService: {
+    hasPlugin: jest.fn().mockReturnValue(true),
+  },
+}));
+
 const emptyRequest = {
   report_params: {
     report_name: '',
@@ -25,7 +31,7 @@ const emptyRequest = {
     configIds: [],
     title: '',
     textDescription: '',
-    htmlDescription: ''
+    htmlDescription: '',
   },
   trigger: {
     trigger_type: '',
@@ -36,7 +42,7 @@ const emptyRequest = {
   status: '',
 };
 
-let timeRange = {
+const timeRange = {
   timeFrom: new Date(123456789),
   timeTo: new Date(1234567890),
 };
@@ -54,8 +60,8 @@ const dashboardHits = {
           title: 'Mock Dashboard',
         },
         notebook: {
-          name: 'mock notebook name'
-        }
+          name: 'mock notebook name',
+        },
       },
     },
   ],
@@ -71,7 +77,7 @@ const visualizationHits = {
           title: 'Mock Visualization',
         },
         notebook: {
-          name: 'mock notebook name'
+          name: 'mock notebook name',
         },
       },
     },
@@ -87,7 +93,7 @@ const savedSearchHits = {
           title: 'Mock saved search value',
         },
         notebook: {
-          name: 'mock notebook name'
+          name: 'mock notebook name',
         },
       },
     },
@@ -130,7 +136,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -142,15 +148,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: dashboardHits,
     });
 
@@ -189,7 +195,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -201,15 +207,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: visualizationHits,
     });
 
@@ -251,7 +257,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -263,15 +269,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: savedSearchHits,
     });
 
@@ -323,15 +329,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: dashboardHits,
     });
 
@@ -373,7 +379,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -385,15 +391,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: visualizationHits,
     });
 
@@ -413,7 +419,6 @@ describe('<ReportSettings /> panel', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
   });
-
 
   test('dashboard create from in-context', async () => {
     window.location.assign(
@@ -437,7 +442,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -449,15 +454,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: dashboardHits,
     });
 
@@ -500,7 +505,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -512,15 +517,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: visualizationHits,
     });
 
@@ -566,7 +571,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -575,7 +580,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: savedSearchHits,
     });
 
@@ -617,7 +622,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -629,15 +634,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -680,7 +685,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -692,15 +697,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: visualizationHits,
     });
 
@@ -748,7 +753,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -760,15 +765,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: report_definition,
       hits: savedSearchHits,
     });
 
