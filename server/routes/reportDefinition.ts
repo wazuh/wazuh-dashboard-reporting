@@ -24,9 +24,10 @@ import { validateReportDefinition } from '../../server/utils/validationHelper';
 import { ReportingConfig } from 'server';
 
 export default function (router: IRouter, config: ReportingConfig) {
-  const protocol = config.get('osd_server', 'protocol');
-  const hostname = config.get('osd_server', 'hostname');
-  const port = config.get('osd_server', 'port');
+  // Wazuh: Remove this in favor of using reportServerUrl from Advanced Settings.
+  // const protocol = config.get('osd_server', 'protocol');
+  // const hostname = config.get('osd_server', 'hostname');
+  // const port = config.get('osd_server', 'port');
   const basePath = config.osdConfig.get('server', 'basePath');
 
   // Create report Definition
@@ -35,6 +36,9 @@ export default function (router: IRouter, config: ReportingConfig) {
       path: `${API_PREFIX}/reportDefinition`,
       validate: {
         body: schema.any(),
+        query: schema.object({
+          reportServerUrl: schema.maybe(schema.string()),
+        }),
       },
     },
     async (
@@ -48,7 +52,24 @@ export default function (router: IRouter, config: ReportingConfig) {
       const logger = context.reporting_plugin.logger;
       // input validation
       try {
-        reportDefinition.report_params.core_params.origin = `${protocol}://${hostname}:${port}${basePath}`;
+        // @ts-ignore
+        const reportServerUrl = request.query.reportServerUrl;
+
+        if (reportServerUrl) {
+          // Use custom reportServerUrl from Advanced Settings
+          reportDefinition.report_params.core_params.origin = `${reportServerUrl}${basePath}`;
+          logger.info(
+            `Creating report definition with custom reportServerUrl: ${reportServerUrl}, basePath: ${basePath}, final origin: ${reportServerUrl}${basePath}`
+          );
+        } else {
+          // Use origin of the browser (which already includes basePath)
+          reportDefinition.report_params.core_params.origin =
+            request.headers.origin;
+          logger.info(
+            `Creating report definition with browser origin: ${request.headers.origin}`
+          );
+        }
+
         reportDefinition = await validateReportDefinition(
           context.core.opensearch.legacy.client,
           reportDefinition,
@@ -93,6 +114,9 @@ export default function (router: IRouter, config: ReportingConfig) {
         params: schema.object({
           reportDefinitionId: schema.string(),
         }),
+        query: schema.object({
+          reportServerUrl: schema.maybe(schema.string()),
+        }),
       },
     },
     async (
@@ -106,8 +130,24 @@ export default function (router: IRouter, config: ReportingConfig) {
       const logger = context.reporting_plugin.logger;
       // input validation
       try {
-        reportDefinition.report_params.core_params.origin =
-          request.headers.origin;
+        // @ts-ignore
+        const reportServerUrl = request.query.reportServerUrl;
+
+        if (reportServerUrl) {
+          // Use custom reportServerUrl from Advanced Settings
+          reportDefinition.report_params.core_params.origin = `${reportServerUrl}${basePath}`;
+          logger.info(
+            `Updating report definition with custom reportServerUrl: ${reportServerUrl}, basePath: ${basePath}, final origin: ${reportServerUrl}${basePath}`
+          );
+        } else {
+          // Use origin of the browser (which already includes basePath)
+          reportDefinition.report_params.core_params.origin =
+            request.headers.origin;
+          logger.info(
+            `Updating report definition with browser origin: ${request.headers.origin}`
+          );
+        }
+
         reportDefinition = await validateReportDefinition(
           context.core.opensearch.legacy.client,
           reportDefinition,
@@ -165,9 +205,8 @@ export default function (router: IRouter, config: ReportingConfig) {
       };
       try {
         // @ts-ignore
-        const opensearchReportsClient: ILegacyScopedClusterClient = context.reporting_plugin.opensearchReportsClient.asScoped(
-          request
-        );
+        const opensearchReportsClient: ILegacyScopedClusterClient =
+          context.reporting_plugin.opensearchReportsClient.asScoped(request);
         const opensearchResp = await opensearchReportsClient.callAsCurrentUser(
           'opensearch_reports.getReportDefinitions',
           {
@@ -213,9 +252,8 @@ export default function (router: IRouter, config: ReportingConfig) {
       addToMetric('report_definition', 'info', 'count');
       try {
         // @ts-ignore
-        const opensearchReportsClient: ILegacyScopedClusterClient = context.reporting_plugin.opensearchReportsClient.asScoped(
-          request
-        );
+        const opensearchReportsClient: ILegacyScopedClusterClient =
+          context.reporting_plugin.opensearchReportsClient.asScoped(request);
 
         const opensearchResp = await opensearchReportsClient.callAsCurrentUser(
           'opensearch_reports.getReportDefinitionById',
@@ -261,9 +299,8 @@ export default function (router: IRouter, config: ReportingConfig) {
       addToMetric('report_definition', 'delete', 'count');
       try {
         // @ts-ignore
-        const opensearchReportsClient: ILegacyScopedClusterClient = context.reporting_plugin.opensearchReportsClient.asScoped(
-          request
-        );
+        const opensearchReportsClient: ILegacyScopedClusterClient =
+          context.reporting_plugin.opensearchReportsClient.asScoped(request);
 
         const opensearchResp = await opensearchReportsClient.callAsCurrentUser(
           'opensearch_reports.deleteReportDefinitionById',
