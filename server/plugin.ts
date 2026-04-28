@@ -65,6 +65,14 @@ export class ReportsDashboardsPlugin
           'Whether to use ForeignObject rendering when generating reports. If it causes issues, try disabling this option.',
         schema: schema.boolean(),
       },
+      'reporting:reportServerUrl': {
+        name: 'Reporting server URL',
+        value: '',
+        description:
+          'Custom server URL for report generation (e.g., https://example.com:5601). Leave empty to use default.',
+        schema: schema.string(),
+        category: ['reporting'],
+      },
     });
 
     try {
