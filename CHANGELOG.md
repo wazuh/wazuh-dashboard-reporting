@@ -5,6 +5,7 @@ All notable changes to the Wazuh app project will be documented in this file.
 ## Wazuh dashboard v5.0.0 - OpenSearch Dashboards 3.6.0 - Revision 01
 
 ### Added
+- Test entry for automated merge test [5538]
 
 - Support for Wazuh 5.0.0
 - Added notifications plugin in report definition [#2](https://github.com/wazuh/wazuh-dashboard-reporting/pull/2)
