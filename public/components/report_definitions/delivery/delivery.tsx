@@ -16,6 +16,8 @@ import {
   EuiCompressedComboBox,
   EuiCompressedFieldText,
   EuiSmallButton,
+  EuiCallOut,
+  EuiLink,
 } from '@elastic/eui';
 import CSS from 'csstype';
 import ReactMDE from 'react-mde';
@@ -31,6 +33,7 @@ import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
 import { emailTemplate } from './tools/email-template';
+import { uiSettingsService } from '../../utils/settings_service';
 
 const styles: CSS.Properties = {
   maxWidth: '800px',
@@ -233,6 +236,48 @@ export function ReportDelivery(props: ReportDeliveryProps) {
 
   const showNotificationsBody = sendNotification ? (
     <div>
+      <EuiSpacer />
+      <EuiCallOut
+        title="Report Server URL Configuration"
+        color="primary"
+        iconType="iInCircle"
+      >
+        <p>
+          Email notifications will include a link to access the generated
+          report. The link URL is determined by the{" "}
+          <strong>Reporting Server URL</strong> setting in{" "}
+          <EuiLink
+            href="../app/management/opensearch-dashboards/settings"
+            target="_blank"
+          >
+            Management &gt; Advanced Settings
+          </EuiLink>.
+        </p>
+        <p>
+          {uiSettingsService.getSearchParams().reportServerUrl ? (
+            <>
+              <strong>Current setting:</strong>{' '}
+              <code>
+                {uiSettingsService.getSearchParams().reportServerUrl}
+              </code>
+            </>
+          ) : (
+            <>
+              <strong>⚠️ Using default:</strong> The report link will use
+              the current browser URL. If recipients access the dashboard
+              from a different URL, the link may not work correctly.
+              Consider configuring a custom{' '}
+              <strong>Reporting Server URL</strong>{' '}
+              <EuiLink
+                href="../app/management/opensearch-dashboards/settings"
+                target="_blank"
+              >
+                in Advanced Settings
+              </EuiLink>.
+            </>
+          )}
+        </p>
+      </EuiCallOut>
       <EuiSpacer />
       <EuiCompressedFormRow
         label="Channels"
