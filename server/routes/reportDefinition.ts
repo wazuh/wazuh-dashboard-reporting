@@ -59,7 +59,7 @@ export default function (router: IRouter, config: ReportingConfig) {
           // Use custom reportServerUrl from Advanced Settings
           reportDefinition.report_params.core_params.origin = `${reportServerUrl}${basePath}`;
           logger.info(
-            `Creating report definition with custom reportServerUrl: ${reportServerUrl}, basePath: ${basePath}, final origin: ${reportServerUrl}${basePath}`
+            `Creating report definition with custom reportServerUrl: ${reportServerUrl}.`
           );
         } else {
           // Use origin of the browser (which already includes basePath)
@@ -137,7 +137,7 @@ export default function (router: IRouter, config: ReportingConfig) {
           // Use custom reportServerUrl from Advanced Settings
           reportDefinition.report_params.core_params.origin = `${reportServerUrl}${basePath}`;
           logger.info(
-            `Updating report definition with custom reportServerUrl: ${reportServerUrl}, basePath: ${basePath}, final origin: ${reportServerUrl}${basePath}`
+            `Updating report definition with custom reportServerUrl: ${reportServerUrl}.`
           );
         } else {
           // Use origin of the browser (which already includes basePath)
