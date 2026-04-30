@@ -249,7 +249,7 @@ export function CreateReport(props: {
           headers: {
             'Content-Type': 'application/json',
           },
-          query: uiSettingsService.getSearchParams().reportServerUrl,
+          query: { reportServerUrl: uiSettingsService.getSearchParams().reportServerUrl },
         })
         .then(
           async (resp: {
