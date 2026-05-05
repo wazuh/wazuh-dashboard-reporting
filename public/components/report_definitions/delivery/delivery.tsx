@@ -237,48 +237,6 @@ export function ReportDelivery(props: ReportDeliveryProps) {
   const showNotificationsBody = sendNotification ? (
     <div>
       <EuiSpacer />
-      <EuiCallOut
-        title="Report Server URL Configuration"
-        color="primary"
-        iconType="iInCircle"
-      >
-        <p>
-          Email notifications will include a link to access the generated
-          report. The link URL is determined by the{" "}
-          <strong>Reporting Server URL</strong> setting in{" "}
-          <EuiLink
-            href="../app/management/opensearch-dashboards/settings"
-            target="_blank"
-          >
-            Management &gt; Advanced Settings
-          </EuiLink>.
-        </p>
-        <p>
-          {uiSettingsService.getSearchParams().reportServerUrl ? (
-            <>
-              <strong>Current setting:</strong>{' '}
-              <code>
-                {uiSettingsService.getSearchParams().reportServerUrl}
-              </code>
-            </>
-          ) : (
-            <>
-              <strong>⚠️ Using default:</strong> The report link will use
-              the current browser URL. If recipients access the dashboard
-              from a different URL, the link may not work correctly.
-              Consider configuring a custom{' '}
-              <strong>Reporting Server URL</strong>{' '}
-              <EuiLink
-                href="../app/management/opensearch-dashboards/settings"
-                target="_blank"
-              >
-                in Advanced Settings
-              </EuiLink>.
-            </>
-          )}
-        </p>
-      </EuiCallOut>
-      <EuiSpacer />
       <EuiCompressedFormRow
         label="Channels"
         isInvalid={showDeliveryChannelError}
@@ -308,6 +266,49 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           onChange={handleNotificationSubject}
         />
       </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCallOut
+        title="Report Link Configuration"
+        color="primary"
+        iconType="iInCircle"
+        size="s"
+      >
+        <p>
+          <strong>Using the report link:</strong> In your notification
+          message, use the <code>{'{{reportLink}}'}</code> variable as a
+          placeholder. This variable will be automatically replaced with
+          the complete report URL when the notification is sent.
+        </p>
+        <EuiSpacer size="s" />
+        <p>
+          <strong>URL base configuration:</strong> The base portion
+          (domain and port) of the report link URL is determined by the{' '}
+          <strong>Reporting Server URL</strong> setting, which you can
+          configure in{' '}
+          <EuiLink
+            href="../app/management/opensearch-dashboards/settings"
+            target="_blank"
+          >
+            Management &gt; Advanced Settings
+          </EuiLink>.
+        </p>
+        <EuiSpacer size="s" />{uiSettingsService.getSearchParams().reportServerUrl ? (
+          <p>
+            <strong>Current base URL:</strong>{' '}
+            <code>
+              {uiSettingsService.getSearchParams().reportServerUrl}
+            </code>
+          </p>
+        ) : (
+          <p>
+            <strong>⚠️ No custom base URL configured:</strong> The report
+            link will use the current browser URL as the base. If
+            notification recipients access the dashboard from a
+            different URL, the link may not work correctly. Consider
+            configuring the <strong>Reporting Server URL</strong> setting.
+          </p>
+        )}
+      </EuiCallOut>
       <EuiSpacer />
       <EuiCompressedFormRow
         label="Notification message"
