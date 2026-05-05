@@ -25,6 +25,7 @@ import {
 } from '../../utils/utils';
 import { definitionInputValidation } from '../utils/utils';
 import { ReportDelivery } from '../delivery';
+import { uiSettingsService } from '../../utils/settings_service';
 
 export function EditReportDefinition(props: {
   [x: string]: any;
@@ -176,6 +177,9 @@ export function EditReportDefinition(props: {
       .put(`../api/reporting/reportDefinitions/${reportDefinitionId}`, {
         body: JSON.stringify(metadata),
         params: reportDefinitionId.toString(),
+        query: {
+          reportServerUrl: uiSettingsService.getSearchParams().reportServerUrl,
+        },
       })
       .then(async () => {
         window.location.assign(`reports-dashboards#/edit=success`);

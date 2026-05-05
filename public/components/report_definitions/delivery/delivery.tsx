@@ -16,6 +16,8 @@ import {
   EuiCompressedComboBox,
   EuiCompressedFieldText,
   EuiSmallButton,
+  EuiCallOut,
+  EuiLink,
 } from '@elastic/eui';
 import CSS from 'csstype';
 import ReactMDE from 'react-mde';
@@ -31,6 +33,7 @@ import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
 import { emailTemplate } from './tools/email-template';
+import { uiSettingsService } from '../../utils/settings_service';
 
 const styles: CSS.Properties = {
   maxWidth: '800px',
@@ -263,6 +266,49 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           onChange={handleNotificationSubject}
         />
       </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCallOut
+        title="Report Link Configuration"
+        color="primary"
+        iconType="iInCircle"
+        size="s"
+      >
+        <p>
+          <strong>Using the report link:</strong> In your notification
+          message, use the <code>{'{{reportLink}}'}</code> variable as a
+          placeholder. This variable will be automatically replaced with
+          the complete report URL when the notification is sent.
+        </p>
+        <EuiSpacer size="s" />
+        <p>
+          <strong>URL base configuration:</strong> The base portion
+          (domain and port) of the report link URL is determined by the{' '}
+          <strong>Reporting Server URL</strong> setting, which you can
+          configure in{' '}
+          <EuiLink
+            href="../app/management/opensearch-dashboards/settings"
+            target="_blank"
+          >
+            Management &gt; Advanced Settings
+          </EuiLink>.
+        </p>
+        <EuiSpacer size="s" />{uiSettingsService.getSearchParams().reportServerUrl ? (
+          <p>
+            <strong>Current base URL:</strong>{' '}
+            <code>
+              {uiSettingsService.getSearchParams().reportServerUrl}
+            </code>
+          </p>
+        ) : (
+          <p>
+            <strong>⚠️ No custom base URL configured:</strong> The report
+            link will use the current browser URL as the base. If
+            notification recipients access the dashboard from a
+            different URL, the link may not work correctly. Consider
+            configuring the <strong>Reporting Server URL</strong> setting.
+          </p>
+        )}
+      </EuiCallOut>
       <EuiSpacer />
       <EuiCompressedFormRow
         label="Notification message"
