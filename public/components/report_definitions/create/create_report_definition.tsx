@@ -23,6 +23,7 @@ import {
 } from '../../utils/utils';
 import { definitionInputValidation } from '../utils/utils';
 import { ReportDelivery } from '../delivery';
+import { uiSettingsService } from '../../utils/settings_service';
 
 interface ReportParamsType {
   report_name: string;
@@ -248,6 +249,7 @@ export function CreateReport(props: {
           headers: {
             'Content-Type': 'application/json',
           },
+          query: { reportServerUrl: uiSettingsService.getSearchParams().reportServerUrl },
         })
         .then(
           async (resp: {

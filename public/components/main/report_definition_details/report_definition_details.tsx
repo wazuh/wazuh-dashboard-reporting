@@ -35,6 +35,7 @@ import {
   permissionsMissingToast,
   permissionsMissingActions,
 } from '../../utils/utils';
+import { uiSettingsService } from '../../utils/settings_service';
 import { GenerateReportLoadingModal } from '../loading_modal';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
 
@@ -560,6 +561,9 @@ export function ReportDefinitionDetails(props: {
       .put(`../api/reporting/reportDefinitions/${reportDefinitionId}`, {
         body: JSON.stringify(updatedReportDefinition),
         params: reportDefinitionId.toString(),
+        query: {
+          reportServerUrl: uiSettingsService.getSearchParams().reportServerUrl,
+        },
       })
       .then(async () => {
         const updatedRawResponse = { report_definition: {} };

@@ -12,6 +12,7 @@ All notable changes to the Wazuh app project will be documented in this file.
 - Added HTML template for e-mail notifications [#49](https://github.com/wazuh/wazuh-dashboard-reporting/pull/49)
 - Added conditional support for observability dashboards [#52](https://github.com/wazuh/wazuh-dashboard-reporting/pull/52)
 - Export generate pdf report method [#72](https://github.com/wazuh/wazuh-dashboard-reporting/pull/72)
+- Added a setting to configure the base URL for the report generated in the notification [#131](https://github.com/wazuh/wazuh-dashboard-reporting/pull/131)
 
 ### Fixed
 
