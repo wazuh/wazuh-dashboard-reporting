@@ -76,6 +76,22 @@ OpenSearch Dashboards Reports allows ‘Report Owner’ (engineers, including bu
 
 Please see our technical [documentation](https://docs.opensearch.org/3.1/reporting/report-dashboard-index/) to learn more about its features. For additional help with the plugin, including questions about opening an issue, try the OpenSearch [Forum](https://forum.opensearch.org/c/opensearch-dashboards/reports/51).
 
+## Configuration
+
+### Advanced Settings
+
+You can configure the following reporting settings in **Management > Advanced Settings**:
+
+#### Reporting Server URL (`reporting:reportServerUrl`)
+
+Custom server URL for report generation. This setting is available for custom implementations that need to override the default server URL.
+
+**Default:** Empty string  
+**Type:** String  
+**Example:** `https://example.com:5601`
+
+**Note:** This setting is passed as a query parameter to report generation endpoints and can be used by custom report handlers. By default, it is not automatically applied unless custom logic is implemented.
+
 ## Contributing
 
 We welcome you to get involved in development, documentation, testing the OpenSearch Dashboards reports plugin. See our [CONTRIBUTING.md](./CONTRIBUTING.md) and join in.
