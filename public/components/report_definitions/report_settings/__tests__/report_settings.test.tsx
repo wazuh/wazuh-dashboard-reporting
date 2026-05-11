@@ -662,7 +662,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition: reportDefinition,
+      report_definition: report_definition,
       hits: dashboardHits,
     });
 
