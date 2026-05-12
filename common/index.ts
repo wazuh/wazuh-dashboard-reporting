@@ -32,3 +32,11 @@ export const NOTIFICATIONS_API = Object.freeze({
   EVENTS: `${NOTIFICATIONS_API_BASE_PATH}/get_event`,
   TEST_MESSAGE: `${NOTIFICATIONS_API_BASE_PATH}/feature/test`,
 });
+
+export const WAZUH_PACKAGES_BASE_URL =
+  'https://packages.wazuh.com/production/5.x/resources/reporting';
+
+export const WAZUH_EMAIL_IMAGES = Object.freeze({
+  LOGO_WHITE: `${WAZUH_PACKAGES_BASE_URL}/wazuh-mail-white-logo.png`,
+  EMAIL_ICON: `${WAZUH_PACKAGES_BASE_URL}/open-mail-notification.png`,
+});
