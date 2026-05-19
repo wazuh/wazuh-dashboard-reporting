@@ -164,7 +164,6 @@ const getUuidFromUrl = () => {
   href = href.replace(/[?&]security_tenant=[^&#]*/g, '');
   return href.match(/([0-9a-zA-Z-]+)\?/);
 };
-
 const isDiscover = () => window.location.href.includes('discover');
 
 // open Download drop-down
