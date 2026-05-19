@@ -267,6 +267,7 @@ $(function () {
     });
   });
 
+  // eslint-disable-next-line no-use-before-define
   checkURLParams();
   locationHashChanged();
 });
@@ -299,8 +300,7 @@ const checkURLParams = async () => {
 const isDiscoverNavMenu = () =>
   /\/app\/(discover|data-explorer)/.test(window.location.href);
 
-const isDashboardNavMenu = () =>
-  /\/app\/dashboards/.test(window.location.href);
+const isDashboardNavMenu = () => /\/app\/dashboards/.test(window.location.href);
 
 const isVisualizationNavMenu = () =>
   /\/app\/visualize/.test(window.location.href);
@@ -313,9 +313,7 @@ function locationHashChanged() {
     if (
       navMenu &&
       navMenu.length &&
-      (isDiscoverNavMenu() ||
-        isDashboardNavMenu() ||
-        isVisualizationNavMenu())
+      (isDiscoverNavMenu() || isDashboardNavMenu() || isVisualizationNavMenu())
     ) {
       try {
         if ($('#downloadReport').length) {
