@@ -164,6 +164,7 @@ const getUuidFromUrl = () => {
   href = href.replace(/[?&]security_tenant=[^&#]*/g, '');
   return href.match(/([0-9a-zA-Z-]+)\?/);
 };
+
 const isDiscover = () => window.location.href.includes('discover');
 
 // open Download drop-down
@@ -205,6 +206,7 @@ $(function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
     const savedSearchId = getUuidFromUrl()[1];
+    // Wazuh: Rename savedSearchId to saved_search_id to align with the request schema
     generateInContextReport(timeRanges, queryUrl, 'csv', {
       saved_search_id: savedSearchId,
     });
@@ -215,6 +217,7 @@ $(function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
     const savedSearchId = getUuidFromUrl()[1];
+    // Wazuh: Rename savedSearchId to saved_search_id to align with the request schema
     generateInContextReport(timeRanges, queryUrl, 'xlsx', {
       saved_search_id: savedSearchId,
     });
@@ -297,7 +300,8 @@ const checkURLParams = async () => {
 const isDiscoverNavMenu = () =>
   /\/app\/(discover|data-explorer)/.test(window.location.href);
 
-const isDashboardNavMenu = () => /\/app\/dashboards/.test(window.location.href);
+const isDashboardNavMenu = () =>
+  /\/app\/dashboards/.test(window.location.href);
 
 const isVisualizationNavMenu = () =>
   /\/app\/visualize/.test(window.location.href);
@@ -310,7 +314,9 @@ function locationHashChanged() {
     if (
       navMenu &&
       navMenu.length &&
-      (isDiscoverNavMenu() || isDashboardNavMenu() || isVisualizationNavMenu())
+      (isDiscoverNavMenu() ||
+        isDashboardNavMenu() ||
+        isVisualizationNavMenu())
     ) {
       try {
         if ($('#downloadReport').length) {
