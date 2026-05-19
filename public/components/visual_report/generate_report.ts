@@ -59,8 +59,10 @@ const removeNonReportElements = (
 ) => {
   // remove buttons
   doc
-    .querySelectorAll("button[class^='euiButton']:not(.visLegend__button)")
+    // WAZUH: Preserve custom button group filters
+    .querySelectorAll("button[class^='euiButton']:not(.visLegend__button):not(.euiButtonGroupButton)")
     .forEach((e) => e.remove());
+    // END WAZUH
 
   // remove anything that shouldn't be shared
   doc.querySelectorAll('.hide-for-sharing').forEach((e) => e.remove());
