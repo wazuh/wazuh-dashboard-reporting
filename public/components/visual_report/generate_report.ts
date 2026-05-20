@@ -59,9 +59,7 @@ const removeNonReportElements = (
 ) => {
   // remove buttons
   doc
-    .querySelectorAll(
-      "button[class^='euiButton']:not(.visLegend__button)"
-    )
+    .querySelectorAll("button[class^='euiButton']:not(.visLegend__button)")
     .forEach((e) => {
       // WAZUH: preserve elements marked with keep-for-report class
       if (!e.classList.contains('keep-for-report')) {
