@@ -58,13 +58,17 @@ const removeNonReportElements = (
   reportSource: VISUAL_REPORT_TYPE
 ) => {
   // remove buttons
-  // WAZUH: add :not(.euiButtonGroupButton) to preserve custom button group filters
   doc
     .querySelectorAll(
-      "button[class^='euiButton']:not(.visLegend__button):not(.euiButtonGroupButton)"
+      "button[class^='euiButton']:not(.visLegend__button)"
     )
-    .forEach((e) => e.remove());
-  // END WAZUH
+    .forEach((e) => {
+      // WAZUH: preserve elements marked with keep-for-report class
+      if (!e.classList.contains('keep-for-report')) {
+        e.remove();
+      }
+      // END WAZUH
+    });
 
   // remove anything that shouldn't be shared
   doc.querySelectorAll('.hide-for-sharing').forEach((e) => e.remove());
