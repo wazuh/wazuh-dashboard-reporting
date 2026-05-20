@@ -205,7 +205,10 @@ $(function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
     const savedSearchId = getUuidFromUrl()[1];
-    generateInContextReport(timeRanges, queryUrl, 'csv', { savedSearchId });
+    // Wazuh: Rename savedSearchId to saved_search_id to align with the request schema
+    generateInContextReport(timeRanges, queryUrl, 'csv', {
+      saved_search_id: savedSearchId,
+    });
   });
 
   // generate XLSX onclick
@@ -213,7 +216,10 @@ $(function () {
     const timeRanges = getTimeFieldsFromUrl();
     const queryUrl = replaceQueryURL(location.href);
     const savedSearchId = getUuidFromUrl()[1];
-    generateInContextReport(timeRanges, queryUrl, 'xlsx', { savedSearchId });
+    // Wazuh: Rename savedSearchId to saved_search_id to align with the request schema
+    generateInContextReport(timeRanges, queryUrl, 'xlsx', {
+      saved_search_id: savedSearchId,
+    });
   });
 
   // navigate to Create report definition page with report source and pre-set time range
@@ -261,6 +267,7 @@ $(function () {
     });
   });
 
+  // eslint-disable-next-line no-use-before-define
   checkURLParams();
   locationHashChanged();
 });
@@ -293,8 +300,7 @@ const checkURLParams = async () => {
 const isDiscoverNavMenu = () =>
   /\/app\/(discover|data-explorer)/.test(window.location.href);
 
-const isDashboardNavMenu = () =>
-  /\/app\/dashboards/.test(window.location.href);
+const isDashboardNavMenu = () => /\/app\/dashboards/.test(window.location.href);
 
 const isVisualizationNavMenu = () =>
   /\/app\/visualize/.test(window.location.href);
@@ -307,9 +313,7 @@ function locationHashChanged() {
     if (
       navMenu &&
       navMenu.length &&
-      (isDiscoverNavMenu() ||
-        isDashboardNavMenu() ||
-        isVisualizationNavMenu())
+      (isDiscoverNavMenu() || isDashboardNavMenu() || isVisualizationNavMenu())
     ) {
       try {
         if ($('#downloadReport').length) {
