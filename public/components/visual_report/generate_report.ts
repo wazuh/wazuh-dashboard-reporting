@@ -60,7 +60,13 @@ const removeNonReportElements = (
   // remove buttons
   doc
     .querySelectorAll("button[class^='euiButton']:not(.visLegend__button)")
-    .forEach((e) => e.remove());
+    .forEach((e) => {
+      // WAZUH: preserve elements marked with keep-for-report class
+      if (!e.classList.contains('keep-for-report')) {
+        e.remove();
+      }
+      // END WAZUH
+    });
 
   // remove anything that shouldn't be shared
   doc.querySelectorAll('.hide-for-sharing').forEach((e) => e.remove());
