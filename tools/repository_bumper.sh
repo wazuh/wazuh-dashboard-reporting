@@ -458,47 +458,13 @@ update_package_json() {
   fi
 }
 
-update_manual_build_workflow() {
-  local WORKFLOW_FILE="$WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE"
-  if [ -f "$WORKFLOW_FILE" ]; then
-    log "Processing $WORKFLOW_FILE"
-    local modified=false
-    # Update version in manual build workflow
-    # on:
-    #   workflow_call:
-    #     inputs:
-    #       reference:
-    #         required: true
-    #         type: string
-    #         description: Source code reference (branch, tag or commit SHA)
-    #         default: 4.13.0
-    # Update the default value for the reference input
-    if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
-      log "Attempting to update default reference to $VERSION in $WORKFLOW_FILE"
-      # Note: This sed command assumes a specific formatting and might be fragile.
-      # It looks for the line starting with "default:" and replaces the version value
-      # Ensure to escape special characters if necessary
-      sed_inplace "s/^\\([[:space:]]*default:[[:space:]]*\\)$CURRENT_VERSION/\\1$VERSION/" "$WORKFLOW_FILE"
-      modified=true
-    fi
-
-    if [[ $modified == true ]]; then
-      log "Successfully updated $WORKFLOW_FILE with new default reference: $VERSION"
-    fi
-  else
-    log "WARNING: $WORKFLOW_FILE not found. Skipping update."
-  fi
-  log "Updating $WAZUH_DASHBOARD_REPORTING_WORKFLOW_FILE workflow..."
-
-}
-
 update_branch_reference_defaults() {
   if [[ "$SKIP_URLS" == "yes" ]]; then
     log "skip_urls is yes (--set-as-main): leaving workflow branch defaults unchanged"
     return 0
   fi
 
-  local bump_string="$VERSION"
+  local bump_string="$GIT_REF_REPLACEMENT"
   local files=(
     "${REPO_PATH}/.github/workflows/5_builderpackage_reporting_plugin.yml"
     "${REPO_PATH}/.github/workflows/5_builderprecompiled_base-dev-environment.yml"
@@ -568,6 +534,20 @@ update_imposter_config() {
   }
 }
 
+get_git_ref_replacement(){
+  local replacement
+  if [ "$TAG" = true ]; then
+    replacement="v${VERSION}"
+    if [ -n "$STAGE" ]; then
+      replacement+="-${STAGE}"
+    fi
+  else
+    replacement="${VERSION}"
+  fi
+
+  GIT_REF_REPLACEMENT="$replacement"
+}
+
 # --- Main Execution ---
 main() {
   # Initialize log file
@@ -603,13 +583,14 @@ main() {
     log "Freeze mode enabled: version values and branch references will be updated."
   fi
 
+  get_git_ref_replacement
+
   # Start file modifications
   log "Starting file modifications..."
 
   update_root_version_json
   update_package_json
   update_changelog
-  update_manual_build_workflow
   update_branch_reference_defaults
 
   # Update docker/imposter/wazuh-config.yml
