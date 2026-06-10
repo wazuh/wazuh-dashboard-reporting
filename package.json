@@ -13,6 +13,8 @@
     "revision": "03"
   },
   "scripts": {
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
     "osd": "node ../../scripts/osd",
     "opensearch": "node ../../scripts/opensearch",
     "lint:es": "node ../../scripts/eslint",
@@ -44,6 +46,9 @@
     "tesseract.js": "^4.0.2"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^2.7.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jsdom": "^16.2.3",
     "@types/set-interval-async": "^1.0.0",
@@ -56,6 +61,11 @@
     "jest-dom": "^4.0.0",
     "replace-in-file": "^6.3.5",
     "ts-jest": "^29.1.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,scss,json,md,yml,yaml}": [
+      "prettier --write --ignore-unknown --config ../../.prettierrc"
+    ]
   },
   "resolutions": {
     "trim": "^1.0.0",
