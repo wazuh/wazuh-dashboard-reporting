@@ -161,7 +161,7 @@ jobs:
           fi
 
           # 3. Search for the original bump branch using the obtained BUMP ISSUE number
-          BUMP_BRANCH="enhancement/wqa${ISSUE_NUMBER}-bump-${{ github.ref_name }}"
+          BUMP_BRANCH="enhancement/wqa${BUMP_ISSUE_NUMBER}-bump-${{ github.ref_name }}"
 
           PR_NUMBER=$(gh pr list --head "$BUMP_BRANCH" --base "${{ github.ref_name }}" --state merged --json number --jq '.[0].number')
 
