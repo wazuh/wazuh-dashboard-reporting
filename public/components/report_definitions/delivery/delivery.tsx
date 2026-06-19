@@ -16,8 +16,11 @@ import {
   EuiCompressedComboBox,
   EuiCompressedFieldText,
   EuiSmallButton,
+  EuiCallOut,
+  EuiLink,
 } from '@elastic/eui';
 import CSS from 'csstype';
+import ReactMDE from 'react-mde';
 import {
   getChannelsQueryObject,
   noDeliveryChannelsSelectedMessage,
@@ -26,10 +29,11 @@ import {
 } from './delivery_constants';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 import { ReportDefinitionParams } from '../create/create_report_definition';
-import ReactMDE from 'react-mde';
 import { converter } from '../utils';
 import { getAvailableNotificationsChannels } from '../../main/main_utils';
 import { REPORTING_NOTIFICATIONS_DASHBOARDS_API } from '../../../../common';
+import { emailTemplate } from './tools/email-template';
+import { uiSettingsService } from '../../utils/settings_service';
 
 const styles: CSS.Properties = {
   maxWidth: '800px',
@@ -38,7 +42,7 @@ const styles: CSS.Properties = {
 // TODO: add to schema to avoid need for export
 export let includeDelivery = false;
 
-export type ReportDeliveryProps = {
+export interface ReportDeliveryProps {
   edit: boolean;
   editDefinitionId: string;
   reportDefinitionRequest: ReportDefinitionParams;
@@ -49,7 +53,7 @@ export type ReportDeliveryProps = {
   deliverySubjectError: string;
   showDeliveryTextError: boolean;
   deliveryTextError: string;
-};
+}
 
 export function ReportDelivery(props: ReportDeliveryProps) {
   const {
@@ -70,9 +74,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
   const [channels, setChannels] = useState([]);
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [notificationSubject, setNotificationSubject] = useState('New report');
-  const [notificationMessage, setNotificationMessage] = useState(
-    'New report available to view'
-  );
+  const [notificationMessage, setNotificationMessage] = useState(emailTemplate);
   const [selectedTab, setSelectedTab] = React.useState<'write' | 'preview'>(
     'write'
   );
@@ -81,16 +83,10 @@ export function ReportDelivery(props: ReportDeliveryProps) {
   const handleSendNotification = (e: { target: { checked: boolean } }) => {
     setSendNotification(e.target.checked);
     includeDelivery = e.target.checked;
-    if (includeDelivery) {
+    if (!edit) {
       reportDefinitionRequest.delivery.title = 'New report';
-      reportDefinitionRequest.delivery.textDescription =
-        'New report available to view';
-      reportDefinitionRequest.delivery.htmlDescription = converter.makeHtml(
-        'New report available to view'
-      );
-    } else {
-      reportDefinitionRequest.delivery.title = `\u2014`;
-      reportDefinitionRequest.delivery.textDescription = `\u2014`;
+      reportDefinitionRequest.delivery.textDescription = notificationMessage;
+      reportDefinitionRequest.delivery.htmlDescription = notificationMessage;
     }
   };
 
@@ -129,60 +125,25 @@ export function ReportDelivery(props: ReportDeliveryProps) {
     };
   };
 
-  const isStatusCodeSuccess = (statusCode: string) => {
-    if (!statusCode) return true;
-    return /^2\d\d/.test(statusCode);
-  };
-
-  const eventToNotification = (event: any) => {
-    const success = event.event.status_list.every((status: any) =>
-      isStatusCodeSuccess(status.delivery_status.status_code)
-    );
-    return {
-      event_source: event.event.event_source,
-      status_list: event.event.status_list,
-      event_id: event.event_id,
-      created_time_ms: event.created_time_ms,
-      last_updated_time_ms: event.last_updated_time_ms,
-      success,
-    };
-  };
-
-  const getNotification = async (id: string) => {
-    const response = await httpClientProps.get(
-      `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.GET_EVENT}/${id}`
-    );
-    return eventToNotification(response.event_list[0]);
-  };
-
   const sendTestNotificationsMessage = async () => {
     if (selectedChannels.length === 0) {
       handleTestMessageConfirmation(noDeliveryChannelsSelectedMessage);
     }
     let testMessageFailures = false;
-    let failedChannels: string[] = [];
+    const failedChannels: string[] = [];
     // for each config ID in the current channels list
     for (let i = 0; i < selectedChannels.length; ++i) {
       try {
-        const eventId = await httpClientProps
+        await httpClientProps
           .get(
             `${REPORTING_NOTIFICATIONS_DASHBOARDS_API.SEND_TEST_MESSAGE}/${selectedChannels[i].id}`,
             {
               query: {
-                feature: 'reports',
+                feature: 'report',
               },
             }
           )
-          .then((response) => response.event_id);
-
-        await getNotification(eventId).then((response) => {
-          if (!response.success) {
-            const error = new Error('Failed to send the test message.');
-            failedChannels.push(response.status_list[0].config_name);
-            error.stack = JSON.stringify(response.status_list, null, 2);
-            throw error;
-          }
-        });
+          .then((response) => response.event_source.reference_id);
       } catch (error) {
         testMessageFailures = true;
       }
@@ -212,7 +173,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
         return response.text();
       })
       .then(function (data) {
-        if (data.includes('opensearch-notifications')) {
+        if (data.includes('wazuh-indexer-notifications')) {
           setIsHidden(false);
           return;
         }
@@ -227,7 +188,7 @@ export function ReportDelivery(props: ReportDeliveryProps) {
         query: getChannelsQueryObject,
       })
       .then(async (response: any) => {
-        let availableChannels = getAvailableNotificationsChannels(
+        const availableChannels = getAvailableNotificationsChannels(
           response.config_list
         );
         setChannels(availableChannels);
@@ -238,15 +199,15 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           httpClientProps
             .get(`../api/reporting/reportDefinitions/${editDefinitionId}`)
             .then(async (response: any) => {
-              if (response.report_definition.delivery.configIds.length > 0) {
+              const delivery = response.report_definition.delivery;
+              if (delivery.configIds.length > 0) {
                 // add config IDs
                 handleSendNotification({ target: { checked: true } });
-                let delivery = response.report_definition.delivery;
-                let editChannelOptions = [];
+                const editChannelOptions = [];
                 for (let i = 0; i < delivery.configIds.length; ++i) {
                   for (let j = 0; j < availableChannels.length; ++j) {
                     if (delivery.configIds[i] === availableChannels[j].id) {
-                      let editChannelOption = {
+                      const editChannelOption = {
                         label: availableChannels[j].label,
                         id: availableChannels[j].id,
                       };
@@ -256,10 +217,10 @@ export function ReportDelivery(props: ReportDeliveryProps) {
                   }
                 }
                 setSelectedChannels(editChannelOptions);
-                setNotificationSubject(delivery.title);
-                setNotificationMessage(delivery.textDescription);
-                reportDefinitionRequest.delivery = delivery;
               }
+              setNotificationSubject(delivery.title);
+              setNotificationMessage(delivery.textDescription);
+              reportDefinitionRequest.delivery = delivery;
             });
         } else {
           defaultCreateDeliveryParams();
@@ -305,6 +266,49 @@ export function ReportDelivery(props: ReportDeliveryProps) {
           onChange={handleNotificationSubject}
         />
       </EuiCompressedFormRow>
+      <EuiSpacer />
+      <EuiCallOut
+        title="Report Link Configuration"
+        color="primary"
+        iconType="iInCircle"
+        size="s"
+      >
+        <p>
+          <strong>Using the report link:</strong> In your notification
+          message, use the <code>{'{{reportLink}}'}</code> variable as a
+          placeholder. This variable will be automatically replaced with
+          the complete report URL when the notification is sent.
+        </p>
+        <EuiSpacer size="s" />
+        <p>
+          <strong>URL base configuration:</strong> The base portion
+          (domain and port) of the report link URL is determined by the{' '}
+          <strong>Reporting Server URL</strong> setting, which you can
+          configure in{' '}
+          <EuiLink
+            href="../app/management/opensearch-dashboards/settings"
+            target="_blank"
+          >
+            Management &gt; Advanced Settings
+          </EuiLink>.
+        </p>
+        <EuiSpacer size="s" />{uiSettingsService.getSearchParams().reportServerUrl ? (
+          <p>
+            <strong>Current base URL:</strong>{' '}
+            <code>
+              {uiSettingsService.getSearchParams().reportServerUrl}
+            </code>
+          </p>
+        ) : (
+          <p>
+            <strong>⚠️ No custom base URL configured:</strong> The report
+            link will use the current browser URL as the base. If
+            notification recipients access the dashboard from a
+            different URL, the link may not work correctly. Consider
+            configuring the <strong>Reporting Server URL</strong> setting.
+          </p>
+        )}
+      </EuiCallOut>
       <EuiSpacer />
       <EuiCompressedFormRow
         label="Notification message"
