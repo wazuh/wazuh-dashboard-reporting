@@ -41,4 +41,5 @@ jobs:
       command: 'yarn build'
       artifact_name: 'reports-dashboards'
       artifact_path: './wazuh-dashboards-reporting/build'
+      workflow_run: 5_builderpackage_reporting_plugin
     secrets: inherit
