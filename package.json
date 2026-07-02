@@ -13,6 +13,8 @@
     "revision": "04"
   },
   "scripts": {
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
     "osd": "node ../../scripts/osd",
     "opensearch": "node ../../scripts/opensearch",
     "lint:es": "node ../../scripts/eslint",
@@ -44,6 +46,9 @@
     "tesseract.js": "^4.0.2"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^2.1.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jsdom": "^16.2.3",
     "@types/set-interval-async": "^1.0.0",
