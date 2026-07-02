@@ -1,8 +1,6 @@
 # Change Log
 
-All notable changes to the Wazuh app project will be documented in this file.
-
-## Wazuh dashboard v5.0.0 - OpenSearch Dashboards 3.6.0 - Revision 03
+## [v5.0.0]
 
 ### Added
 
@@ -18,9 +16,11 @@ All notable changes to the Wazuh app project will be documented in this file.
 
 - Fixed invalid date error in report details [#53](https://github.com/wazuh/wazuh-dashboard-reporting/pull/53)
 - Fixed request error when generating report for save search on discover [#159](https://github.com/wazuh/wazuh-dashboard-reporting/pull/159)
-- Fixed the validation of the notification plugin [#105](https://github.com/wazuh/wazuh-dashboard-reporting/pull/105) 
+- Fixed the validation of the notification plugin [#105](https://github.com/wazuh/wazuh-dashboard-reporting/pull/105)
 - Fixed custom filter buttons not being rendered in pdf reports [#160](https://github.com/wazuh/wazuh-dashboard-reporting/pull/160)
 
 ### Removed
 
 - Removed OpenSearch references [#55](https://github.com/wazuh/wazuh-dashboard-reporting/pull/55)
+
+## Prior versions
