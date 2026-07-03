@@ -8,7 +8,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-# test concurrency
 env:
   CI: 1
   # avoid warnings like "tput: No value for $TERM and no -T specified"
