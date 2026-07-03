@@ -5,6 +5,10 @@ on:
     types:
       [opened, synchronize, reopened, ready_for_review]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   PLUGIN_NAME: dashboards-reporting
   OPENSEARCH_DASHBOARDS_VERSION: 'main'
