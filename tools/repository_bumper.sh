@@ -89,7 +89,7 @@ sed_extended() {
     sed -E "$@"
   else
     # Try -E first, fall back to -r if it fails
-    sed -E "$@" 2>/dev/null || sed -i -r "$@"
+    sed -E "$@" 2>/dev/null || sed -r "$@"
   fi
 }
 
@@ -127,10 +127,10 @@ update_json() {
   # For package.json version updates, be more specific to avoid updating nested versions
   if [ "$key" = "version" ] && [[ "$file" == *"package.json" ]]; then
     # Update only the first occurrence of version (which should be the top-level one)
-    sed "1,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/{s/^\\([[:space:]]*\\)\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"version\": \"$escaped_value\"/;}" "$file" >"${file}.tmp"
+    sed "1,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/{s/^\([[:space:]]*\)\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\1\"version\": \"$escaped_value\"/;}" "$file" >"${file}.tmp"
   else
     # Use the general approach for other keys
-    sed "s/^\\([[:space:]]*\\)\"$escaped_key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"$escaped_key\": \"$escaped_value\"/g" "$file" >"${file}.tmp"
+    sed "s/^\([[:space:]]*\)\"$escaped_key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\1\"$escaped_key\": \"$escaped_value\"/g" "$file" >"${file}.tmp"
   fi
 
   # Check if sed actually made a change (simple check: compare files)
@@ -147,79 +147,26 @@ update_json() {
   fi
 }
 
+# Function to update CHANGELOG.md
 update_changelog() {
   log "Updating CHANGELOG.md..."
-  local changelog_file="${REPO_PATH}/CHANGELOG.md"
+  local changelog_script="${SCRIPT_PATH}/changelog_bump.sh"
+  local args=("$VERSION" "$CURRENT_VERSION")
 
-  if [ ! -f "$changelog_file" ]; then
-    log "ERROR: CHANGELOG.md not found at $changelog_file"
+  if [ ! -f "$changelog_script" ]; then
+    log "ERROR: changelog_bump.sh not found at $changelog_script"
     exit 1
   fi
 
-  local new_version="$VERSION"
-  local current_version="$CURRENT_VERSION"
-
-  # Get GitHub remote URL to build prior version links
-  local remote_url
-  remote_url=$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null \
-    | sed 's|git@github.com:|https://github.com/|' \
-    | sed 's|\.git$||')
-  if [ -z "$remote_url" ]; then
-    log "WARNING: Could not determine remote URL. Using placeholder."
-    remote_url="https://github.com/wazuh/REPO"
+  if [ "$TAG" = true ]; then
+    args+=("--tag")
   fi
 
-  # Determine minimum minor version to keep (last 2 minors)
-  local new_major new_minor min_minor
-  new_major=$(echo "$new_version" | cut -d. -f1)
-  new_minor=$(echo "$new_version" | cut -d. -f2)
-  min_minor=$((new_minor - 1))
-  if [ "$min_minor" -lt 0 ]; then min_minor=0; fi
-
-  # Build prior version link for current (soon to be prior) version
-  local current_version_link
-  current_version_link="- [v${current_version}](${remote_url}/blob/${current_version}/CHANGELOG.md)"
-
-  # Extract existing Prior versions links and prune to last 2 minors
-  local existing_prior filtered_prior link link_version link_major link_minor
-  existing_prior=$(awk '/^## Prior versions/{found=1; next} found && /^- \[/{print}' "$changelog_file" || true)
-
-  filtered_prior=""
-  if [ -n "$existing_prior" ]; then
-    while IFS= read -r link; do
-      [ -z "$link" ] && continue
-      link_version=$(echo "$link" | sed 's/.*\[v\([0-9]*\.[0-9]*\.[0-9]*\)\].*/\1/')
-      link_major=$(echo "$link_version" | cut -d. -f1)
-      link_minor=$(echo "$link_version" | cut -d. -f2)
-      if [ "$link_major" -eq "$new_major" ] && [ "$link_minor" -ge "$min_minor" ]; then
-        filtered_prior="${filtered_prior}${link}
-"
-      fi
-    done <<< "$existing_prior"
-  fi
-
-  # Build new CHANGELOG.md
-  local temp_file
-  temp_file=$(mktemp)
-
-  {
-    printf "# Change Log\n\n"
-    printf "## [v%s]\n\n" "$new_version"
-    printf "### Added\n\n"
-    echo "- Support for Wazuh ${new_version}"
-    echo ""
-    printf "## Prior versions\n\n"
-    echo "$current_version_link"
-    if [ -n "$filtered_prior" ]; then
-      printf "%s" "$filtered_prior"
-    fi
-  } > "$temp_file"
-
-  mv "$temp_file" "$changelog_file" || {
-    log "ERROR: Failed to update $changelog_file"
+  bash "$changelog_script" "${args[@]}" 2>&1 | tee -a "$LOG_FILE"
+  if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+    log "ERROR: Failed to update CHANGELOG.md"
     exit 1
-  }
-  log "CHANGELOG.md updated successfully."
+  fi
 }
 
 # --- Core Logic Functions ---
@@ -404,9 +351,15 @@ compare_versions_and_set_revision() {
         # Ensure CURRENT_REVISION is treated as a number (remove leading zeros for arithmetic if necessary, handle base 10)
         local current_revision_int=$((10#$current_revision_val))
         local new_revision_int=$((current_revision_int + 1))
+        if [ -n "$STAGE" ] && [ "$STAGE" != "$CURRENT_STAGE" ]; then
         # Format back to two digits with leading zero
-        REVISION=$(printf "%02d" "$new_revision_int")
-        log "Current revision: $current_revision_val. New revision set to: $REVISION"
+          log "Incrementing revision."
+          REVISION=$(printf "%02d" "$new_revision_int")
+          log "Current revision: $current_revision_val. New revision set to: $REVISION"
+        else
+          REVISION=$(printf "%02d" "$current_revision_int")
+          log "Current revision: $current_revision_val."
+        fi
       fi
     fi
   fi
@@ -427,7 +380,7 @@ update_root_version_json() {
     fi
 
     # Update stage in VERSION.json
-    if [[ "$CURRENT_STAGE" != "$STAGE" ]]; then
+    if [ -n "$STAGE" ] && [[ "$CURRENT_STAGE" != "$STAGE" ]]; then
       sed_inplace "s/^[[:space:]]*\"stage\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/  \"stage\": \"$STAGE\"/" "$VERSION_FILE"
       modified=true
     fi
@@ -502,58 +455,6 @@ update_branch_reference_defaults() {
   done
 }
 
-# Function to update specFile URL in docker/imposter/wazuh-config.yml
-update_imposter_config() {
-  local new_version="$1"
-  local imposter_config_file="${REPO_PATH}/docker/imposter/wazuh-config.yml"
-  local api_info_file="${REPO_PATH}/docker/imposter/api-info/api_info.json"
-
-  if [ ! -f "$imposter_config_file" ]; then
-    log "WARNING: $imposter_config_file not found. Skipping specFile URL update."
-    return
-  fi
-
-  if [ ! -f "$api_info_file" ]; then
-    log "WARNING: $api_info_file not found. Skipping specFile URL update."
-    return
-  fi
-
-  local replacement
-  if [ "$TAG" = true ]; then
-    replacement="v${VERSION}"
-    if [ -n "$STAGE" ]; then
-      replacement+="-${STAGE}"
-    fi
-  else
-    replacement="${VERSION}"
-  fi
-
-  # Extract current reference from URL
-  local current_spec_ref
-  current_spec_ref=$(grep -oE 'specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]+/' "$imposter_config_file" | sed_extended 's|.*/wazuh/([^/]+)/.*|\1|' | head -n1)
-
-  if [ "$current_spec_ref" = "$replacement" ]; then
-    return
-  fi
-
-  log "Updating specFile URL in $imposter_config_file from $current_spec_ref to $VERSION"
-
-  update_json "$api_info_file" "api_version" "$VERSION" || {
-    log "ERROR: Failed to update apiVersion in $api_info_file"
-    exit 1
-  }
-
-  log "Updating specFile URL in $imposter_config_file to version $new_version"
-
-  # Use sed to replace the version string within the specFile URL
-  # Create a more compatible sed command for macOS
-  sed_inplace "s|specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]*/|specFile: https://raw.githubusercontent.com/wazuh/wazuh/${replacement}/|" "$imposter_config_file" &&
-    log "Successfully updated specFile URL in $imposter_config_file" || {
-    log "ERROR: Failed to update specFile URL in $imposter_config_file using sed."
-    exit 1
-  }
-}
-
 get_git_ref_replacement(){
   local replacement
   if [ "$TAG" = true ]; then
@@ -612,10 +513,6 @@ main() {
   update_package_json
   update_changelog
   update_branch_reference_defaults
-
-  # Update docker/imposter/wazuh-config.yml
-  log "Updating docker/imposter/wazuh-config.yml..."
-  update_imposter_config "$VERSION"
 
   log "File modifications completed."
   log "Repository bump completed successfully. Log file: $LOG_FILE"
