@@ -1,8 +1,12 @@
 name: Test and Build OpenSearch Dashboards Reports
 
-on: 
+on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   PLUGIN_NAME: reportsDashboards
