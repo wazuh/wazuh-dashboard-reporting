@@ -25,7 +25,7 @@ you to create/open/submit it.
 - **English everywhere.** Describe the _why_, not just the _what_.
 - **Issues arrive as URLs** and may live in a different repo. Read them with
   `gh issue view <url>` and classify the source (see below) — it changes both
-  "Issues Resolved" and the CHANGELOG.
+  the `## Description` closing reference and the CHANGELOG.
 
 ## Issue source: public vs internal
 
@@ -33,11 +33,11 @@ Detect the source repo from the issue URL:
 
 - **Internal** — the URL/repo contains `internal-devel-request` (e.g.
   `https://github.com/wazuh/internal-devel-requests/issues/5526`):
-  - PR "Issues Resolved": **leave empty** — never expose the internal link.
+  - PR `## Description`: **do not reference the issue** — never expose the internal link.
   - CHANGELOG: **no entry** for internal-devel-requests issues.
 - **Public** — any other repo (e.g.
   `https://github.com/wazuh/wazuh-dashboard-reporting/issues/123`):
-  - PR "Issues Resolved": `closes #<n>` (same repo) or `closes <issue-url>`
+  - PR `## Description`: `Closes #<n>` (same repo) or `Closes <issue-url>`
     (another public repo).
   - CHANGELOG: add an entry linking to the **issue** (see step 4).
 
@@ -112,38 +112,18 @@ When unsure (and the issue is public), add an entry.
 
 ### 5. Fill the PR body
 
-Fill the repository PR template **verbatim** (keep every heading and checklist
-item exactly).
+Fill the repository PR template **verbatim** — every heading, HTML comment, and
+checklist item exactly as it appears in
+[`.github/PULL_REQUEST_TEMPLATE.md`](../../../.github/PULL_REQUEST_TEMPLATE.md).
+Read it first; do not restate or paraphrase its sections here — this skill only
+references the file so the two never drift out of sync.
 
-> **repo-specific (wazuh-dashboard-reporting):** this mirrors
-> [`.github/PULL_REQUEST_TEMPLATE.md`](../../../.github/PULL_REQUEST_TEMPLATE.md).
-> Read it first and keep this block in sync if the repo template changes. The
-> template has **no dedicated Evidence section** — put the screenshot/video
-> (REQUIRED for any UI change) and test notes under `### Description`.
-
-```markdown
-### Description
-[Describe what this change achieves]
-
-### Issues Resolved
-[List any issues this PR will resolve]
-
-### Check List
-- [ ] New functionality includes testing.
-  - [ ] All tests pass, including unit test, integration test and doctest
-- [ ] New functionality has been documented.
-  - [ ] New functionality has javadoc added
-  - [ ] New functionality has user manual doc added
-- [ ] Commits are signed per the DCO using --signoff
-
-By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license.
-For more information on following Developer Certificate of Origin and signing off your commits, please check [here](https://github.com/opensearch-project/OpenSearch/blob/main/CONTRIBUTING.md#developer-certificate-of-origin).
-```
-
-Fill each section with real content; check the boxes that genuinely apply. For
-**Issues Resolved**: public issue → closing keyword (`closes`, `fixes`, `fix`)
-with `#<n>` or the full issue URL; **internal-devel-requests issue → leave the
-section empty** (see "Issue source" above).
+Fill each section with real content; check the boxes in `### Review Checklist`
+that genuinely apply. Put the closing reference under `## Description` (see
+"Issue source" above): public issue → closing keyword (`Closes`, `Fixes`, `Fix`)
+with `#<n>` or the full issue URL; **internal-devel-requests issue → no issue
+reference at all**. Use `### Results and Evidence` for the screenshot/video
+(REQUIRED for any UI change) and test notes.
 
 **Default deliverable — pre-flight report.** Unless the user asked you to create the
 PR, stop here and output the filled body plus this report for the human to act on:
@@ -162,15 +142,15 @@ PR pre-flight
 
 ### 6. Create as Draft — only when explicitly asked
 
+Write the body filled in step 5 (not the blank template) to a temp file, then
+pass that file — never point `--body-file` at the template path itself, or the
+PR is created with the empty placeholder text.
+
 ```bash
 gh pr create --draft \
   --base <version-branch> \
   --title "<Imperative, capitalized subject>" \
-  --body "$(cat <<'EOF'
-### Description
-...
-EOF
-)"
+  --body-file /tmp/pr-body.md
 ```
 
 ### 7. Mark Ready for review — only when explicitly asked
