@@ -22,3 +22,4 @@
 - Removed OpenSearch references [#55](https://github.com/wazuh/wazuh-dashboard-reporting/pull/55)
 
 ## Prior versions
+
