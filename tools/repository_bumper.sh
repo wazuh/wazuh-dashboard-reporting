@@ -89,7 +89,7 @@ sed_extended() {
     sed -E "$@"
   else
     # Try -E first, fall back to -r if it fails
-    sed -E "$@" 2>/dev/null || sed -i -r "$@"
+    sed -E "$@" 2>/dev/null || sed -r "$@"
   fi
 }
 
@@ -127,10 +127,10 @@ update_json() {
   # For package.json version updates, be more specific to avoid updating nested versions
   if [ "$key" = "version" ] && [[ "$file" == *"package.json" ]]; then
     # Update only the first occurrence of version (which should be the top-level one)
-    sed "1,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/{s/^\\([[:space:]]*\\)\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"version\": \"$escaped_value\"/;}" "$file" >"${file}.tmp"
+    sed "1,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/{s/^\([[:space:]]*\)\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\1\"version\": \"$escaped_value\"/;}" "$file" >"${file}.tmp"
   else
     # Use the general approach for other keys
-    sed "s/^\\([[:space:]]*\\)\"$escaped_key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\\1\"$escaped_key\": \"$escaped_value\"/g" "$file" >"${file}.tmp"
+    sed "s/^\([[:space:]]*\)\"$escaped_key\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\1\"$escaped_key\": \"$escaped_value\"/g" "$file" >"${file}.tmp"
   fi
 
   # Check if sed actually made a change (simple check: compare files)
@@ -147,58 +147,25 @@ update_json() {
   fi
 }
 
+# Function to update CHANGELOG.md
 update_changelog() {
   log "Updating CHANGELOG.md..."
-  local changelog_file="${REPO_PATH}/CHANGELOG.md"
+  local changelog_script="${SCRIPT_PATH}/changelog_bump.sh"
+  local args=("$VERSION" "$CURRENT_VERSION")
 
-  # Extract OpenSearch Dashboards version from package.json
-  # Attempt to extract OpenSearch Dashboards version using sed (WARNING: Fragile!)
-  # This assumes "pluginPlatform": { ... "version": "x.y.z" ... } structure
-  # It looks for the block starting with "pluginPlatform": { and ending with }
-  # Within that block, it finds the line starting with "version": "..." and extracts the value.
-  # This is significantly less reliable than using jq.
-  log "Attempting to extract .version from $PACKAGE_JSON using sed (Note: This is fragile)"
-  # Extract OpenSearch Dashboards version from package.json (first occurrence of "version")
-  OPENSEARCH_VERSION=$(sed -n '/"opensearchDashboards": {/,/}/ s/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*$/\1/p' "$PACKAGE_JSON" | head -n 1)
-  if [ -z "$OPENSEARCH_VERSION" ] || [ "$OPENSEARCH_VERSION" == "null" ]; then
-    log "ERROR: Could not extract pluginPlatform.version from $PACKAGE_JSON for changelog"
+  if [ ! -f "$changelog_script" ]; then
+    log "ERROR: changelog_bump.sh not found at $changelog_script"
     exit 1
   fi
-  log "Detected OpenSearch Dashboards version for changelog: $OPENSEARCH_VERSION"
 
-  # Construct the new changelog entry
-  # Note: Using printf for better handling of newlines and potential special characters
-  # Use the calculated REVISION variable here
-  # Prepare the header to search for
-  local changelog_header="## Wazuh dashboard v${VERSION} - OpenSearch Dashboards ${OPENSEARCH_VERSION} - Revision "
-  local changelog_header_regex="^${changelog_header}[0-9]+"
+  if [ "$TAG" = true ]; then
+    args+=("--tag")
+  fi
 
-  # Check if an entry for this version and OpenSearch version already exists
-  if grep -qE "$changelog_header_regex" "$changelog_file"; then
-    if [ -n "$STAGE" ]; then
-      log "Changelog entry for this version and OpenSearch Dashboards version exists. Updating revision only."
-      # Use sed to update only the revision number in the header
-       sed_inplace -E "s|(${changelog_header_regex})|${changelog_header}${REVISION}|" "$changelog_file" &&
-        log "CHANGELOG.md revision updated successfully." || {
-        log "ERROR: Failed to update revision in $changelog_file"
-        exit 1
-      }
-    fi
-  else
-    log "No existing changelog entry for this version and OpenSearch Dashboards version. Inserting new entry."
-
-   # Create the new entry directly in the changelog using sed
-    local temp_file=$(mktemp)
-    head -n 4 "$changelog_file" >"$temp_file"
-    printf "## Wazuh dashboard v%s - OpenSearch Dashboards %s - Revision %s\n\n### Added\n\n- Support for Wazuh %s\n\n" "$VERSION" "$OPENSEARCH_VERSION" "$REVISION" "$VERSION" >>"$temp_file"
-    tail -n +5 "$changelog_file" >>"$temp_file"
-
-    mv "$temp_file" "$changelog_file" || {
-      log "ERROR: Failed to update $changelog_file"
-      rm -f "$temp_file" # Clean up temp file on error
-      exit 1
-    }
-    log "CHANGELOG.md updated successfully."
+  bash "$changelog_script" "${args[@]}" 2>&1 | tee -a "$LOG_FILE"
+  if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+    log "ERROR: Failed to update CHANGELOG.md"
+    exit 1
   fi
 }
 
@@ -384,9 +351,15 @@ compare_versions_and_set_revision() {
         # Ensure CURRENT_REVISION is treated as a number (remove leading zeros for arithmetic if necessary, handle base 10)
         local current_revision_int=$((10#$current_revision_val))
         local new_revision_int=$((current_revision_int + 1))
+        if [ -n "$STAGE" ] && [ "$STAGE" != "$CURRENT_STAGE" ]; then
         # Format back to two digits with leading zero
-        REVISION=$(printf "%02d" "$new_revision_int")
-        log "Current revision: $current_revision_val. New revision set to: $REVISION"
+          log "Incrementing revision."
+          REVISION=$(printf "%02d" "$new_revision_int")
+          log "Current revision: $current_revision_val. New revision set to: $REVISION"
+        else
+          REVISION=$(printf "%02d" "$current_revision_int")
+          log "Current revision: $current_revision_val."
+        fi
       fi
     fi
   fi
@@ -407,7 +380,7 @@ update_root_version_json() {
     fi
 
     # Update stage in VERSION.json
-    if [[ "$CURRENT_STAGE" != "$STAGE" ]]; then
+    if [ -n "$STAGE" ] && [[ "$CURRENT_STAGE" != "$STAGE" ]]; then
       sed_inplace "s/^[[:space:]]*\"stage\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/  \"stage\": \"$STAGE\"/" "$VERSION_FILE"
       modified=true
     fi
@@ -482,58 +455,6 @@ update_branch_reference_defaults() {
   done
 }
 
-# Function to update specFile URL in docker/imposter/wazuh-config.yml
-update_imposter_config() {
-  local new_version="$1"
-  local imposter_config_file="${REPO_PATH}/docker/imposter/wazuh-config.yml"
-  local api_info_file="${REPO_PATH}/docker/imposter/api-info/api_info.json"
-
-  if [ ! -f "$imposter_config_file" ]; then
-    log "WARNING: $imposter_config_file not found. Skipping specFile URL update."
-    return
-  fi
-
-  if [ ! -f "$api_info_file" ]; then
-    log "WARNING: $api_info_file not found. Skipping specFile URL update."
-    return
-  fi
-
-  local replacement
-  if [ "$TAG" = true ]; then
-    replacement="v${VERSION}"
-    if [ -n "$STAGE" ]; then
-      replacement+="-${STAGE}"
-    fi
-  else
-    replacement="${VERSION}"
-  fi
-
-  # Extract current reference from URL
-  local current_spec_ref
-  current_spec_ref=$(grep -oE 'specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]+/' "$imposter_config_file" | sed_extended 's|.*/wazuh/([^/]+)/.*|\1|' | head -n1)
-
-  if [ "$current_spec_ref" = "$replacement" ]; then
-    return
-  fi
-
-  log "Updating specFile URL in $imposter_config_file from $current_spec_ref to $VERSION"
-
-  update_json "$api_info_file" "api_version" "$VERSION" || {
-    log "ERROR: Failed to update apiVersion in $api_info_file"
-    exit 1
-  }
-
-  log "Updating specFile URL in $imposter_config_file to version $new_version"
-
-  # Use sed to replace the version string within the specFile URL
-  # Create a more compatible sed command for macOS
-  sed_inplace "s|specFile: https://raw.githubusercontent.com/wazuh/wazuh/[^/]*/|specFile: https://raw.githubusercontent.com/wazuh/wazuh/${replacement}/|" "$imposter_config_file" &&
-    log "Successfully updated specFile URL in $imposter_config_file" || {
-    log "ERROR: Failed to update specFile URL in $imposter_config_file using sed."
-    exit 1
-  }
-}
-
 get_git_ref_replacement(){
   local replacement
   if [ "$TAG" = true ]; then
@@ -592,10 +513,6 @@ main() {
   update_package_json
   update_changelog
   update_branch_reference_defaults
-
-  # Update docker/imposter/wazuh-config.yml
-  log "Updating docker/imposter/wazuh-config.yml..."
-  update_imposter_config "$VERSION"
 
   log "File modifications completed."
   log "Repository bump completed successfully. Log file: $LOG_FILE"
