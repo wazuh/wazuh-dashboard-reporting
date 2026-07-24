@@ -123,9 +123,9 @@ jobs:
   #     - run: node -v
   #     - run: yarn -v
 
-  #     - name: Checkout Plugin	
+  #     - name: Checkout Plugin
   #       uses: actions/checkout@v4
-  #       with:	
+  #       with:
   #         path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
   #     - name: Set env

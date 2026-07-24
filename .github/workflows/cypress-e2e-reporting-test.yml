@@ -62,10 +62,10 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-job-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/job-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
@@ -76,10 +76,10 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-reports-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/reports-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
