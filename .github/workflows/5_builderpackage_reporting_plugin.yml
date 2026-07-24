@@ -22,13 +22,13 @@ on:
         required: true
         type: string
         description: Git reference (branch, tag, or commit SHA) to build from.
-        default: main
+        default: 5.0.1
   workflow_dispatch:
     inputs:
       reference:
         required: true
         type: string
-        default: main
+        default: 5.0.1
         description: Git reference (branch, tag, or commit SHA) to build from.
 
 jobs:
@@ -36,9 +36,12 @@ jobs:
   build:
     name: Build app package
     uses: ./.github/workflows/5_builderprecompiled_base-dev-environment.yml
+    permissions:
+      id-token: write
     with:
       reference: ${{ inputs.reference }}
       command: 'yarn build'
       artifact_name: 'reports-dashboards'
       artifact_path: './wazuh-dashboards-reporting/build'
+      execution_repository: wazuh-dashboard-reporting/5_builderpackage_reporting_plugin
     secrets: inherit

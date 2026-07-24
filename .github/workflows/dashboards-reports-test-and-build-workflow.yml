@@ -1,8 +1,12 @@
 name: Test and Build OpenSearch Dashboards Reports
 
-on: 
+on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   PLUGIN_NAME: reportsDashboards
@@ -119,9 +123,9 @@ jobs:
   #     - run: node -v
   #     - run: yarn -v
 
-  #     - name: Checkout Plugin	
+  #     - name: Checkout Plugin
   #       uses: actions/checkout@v4
-  #       with:	
+  #       with:
   #         path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
   #     - name: Set env

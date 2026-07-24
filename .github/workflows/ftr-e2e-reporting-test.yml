@@ -6,6 +6,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   CI: 1
   # avoid warnings like "tput: No value for $TERM and no -T specified"
@@ -60,10 +64,10 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-job-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/job-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
@@ -74,10 +78,10 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-reports-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/reports-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
