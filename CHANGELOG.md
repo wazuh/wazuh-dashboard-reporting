@@ -4,7 +4,6 @@
 
 | Issue | Comment |
 | ----- | ------- |
-|  | Support for Wazuh 5.0.0 |
 | [#2](https://github.com/wazuh/wazuh-dashboard-reporting/pull/2) | Added notifications plugin in report definition |
 | [#48](https://github.com/wazuh/wazuh-dashboard-reporting/pull/48) | Added missing notification channels in the UI |
 | [#49](https://github.com/wazuh/wazuh-dashboard-reporting/pull/49) [#156](https://github.com/wazuh/wazuh-dashboard-reporting/pull/156) | Added HTML template for e-mail notifications |
