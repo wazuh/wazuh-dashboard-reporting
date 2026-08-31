@@ -8,6 +8,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   PLUGIN_NAME: dashboards-reporting
   OPENSEARCH_DASHBOARDS_VERSION: 'main'
