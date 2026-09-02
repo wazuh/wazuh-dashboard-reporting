@@ -11,6 +11,12 @@
 | [#72](https://github.com/wazuh/wazuh-dashboard-reporting/pull/72) | Export generate pdf report method |
 | [#131](https://github.com/wazuh/wazuh-dashboard-reporting/pull/131) | Added a setting to configure the base URL for the report generated in the notification |
 
+### Removed
+
+| Issue | Comment |
+| ----- | ------- |
+| [#55](https://github.com/wazuh/wazuh-dashboard-reporting/pull/55) | Removed OpenSearch references |
+
 ### Fixed
 
 | Issue | Comment |
@@ -19,12 +25,6 @@
 | [#159](https://github.com/wazuh/wazuh-dashboard-reporting/pull/159) | Fixed request error when generating report for save search on discover |
 | [#105](https://github.com/wazuh/wazuh-dashboard-reporting/pull/105) | Fixed the validation of the notification plugin |
 | [#160](https://github.com/wazuh/wazuh-dashboard-reporting/pull/160) | Fixed custom filter buttons not being rendered in pdf reports |
-
-### Removed
-
-| Issue | Comment |
-| ----- | ------- |
-| [#55](https://github.com/wazuh/wazuh-dashboard-reporting/pull/55) | Removed OpenSearch references |
 
 ## Prior versions
 
