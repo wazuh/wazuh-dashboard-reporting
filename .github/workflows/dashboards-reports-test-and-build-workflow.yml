@@ -11,7 +11,11 @@ concurrency:
 env:
   PLUGIN_NAME: reportsDashboards
   ARTIFACT_NAME: reports-dashboards
-  OPENSEARCH_DASHBOARDS_VERSION: 'main'
+  # Wazuh: pin the host to the version declared in opensearch_dashboards.json.
+  # Building against OpenSearch-Dashboards 'main' broke the tests when upstream
+  # bumped jest to 30 and @testing-library/jest-dom to 6, neither of which this
+  # plugin uses.
+  OPENSEARCH_DASHBOARDS_VERSION: 3.6.0
 
 jobs:
   Get-CI-Image-Tag:
@@ -123,9 +127,9 @@ jobs:
   #     - run: node -v
   #     - run: yarn -v
 
-  #     - name: Checkout Plugin	
+  #     - name: Checkout Plugin
   #       uses: actions/checkout@v4
-  #       with:	
+  #       with:
   #         path: OpenSearch-Dashboards/plugins/${{ env.PLUGIN_NAME }}
 
   #     - name: Set env
