@@ -11,7 +11,11 @@ concurrency:
 env:
   PLUGIN_NAME: reportsDashboards
   ARTIFACT_NAME: reports-dashboards
-  OPENSEARCH_DASHBOARDS_VERSION: 'main'
+  # Wazuh: pin the host to the version declared in opensearch_dashboards.json.
+  # Building against OpenSearch-Dashboards 'main' broke the tests when upstream
+  # bumped jest to 30 and @testing-library/jest-dom to 6, neither of which this
+  # plugin uses.
+  OPENSEARCH_DASHBOARDS_VERSION: 3.6.0
 
 jobs:
   Get-CI-Image-Tag:
