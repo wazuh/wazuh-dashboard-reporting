@@ -113,6 +113,11 @@ function main() {
     return;
   }
 
+  // Compare against the point the branch left each base, not the base's current
+  // tip. Diffing against the tip also reports the base's own later commits, in
+  // reverse, and blames them on this change. The merge base is what GitHub uses
+  // for "Files changed", so the check and the diff a reviewer reads agree.
+  const mergeBases = [];
   for (const ref of bases) {
     if (
       gitQuiet('rev-parse', '--verify', '--quiet', `${ref}^{commit}`) === null
@@ -123,22 +128,40 @@ function main() {
       );
       process.exit(2);
     }
+    const mb = gitQuiet('merge-base', ref, 'HEAD');
+    if (mb === null || mb.trim() === '') {
+      console.error(
+        `No common history between "${ref}" and HEAD. A shallow checkout causes ` +
+          'this: the job needs the full history (actions/checkout with fetch-depth: 0).'
+      );
+      process.exit(2);
+    }
+    mergeBases.push(mb.trim());
   }
 
   const root = git('rev-parse', '--show-toplevel').trim();
   const rel = (f) => path.relative(root, path.resolve(f));
 
-  // Follow renames so moving an upstream file does not count as writing it.
-  const renames = new Map();
-  if (!staged) {
+  // Follow renames so moving a file does not count as writing every line of it.
+  // Each base needs its own map: a merge sees a rename against one parent and
+  // not the other, and a missing entry makes the file look new.
+  const renamesFor = (ref) => {
+    const map = new Map();
+    const args = ['diff', '--name-status', '--find-renames'];
     const ns =
-      gitQuiet('diff', '--name-status', '--find-renames', bases[0]) || '';
+      gitQuiet(
+        ...(ref === '--cached' ? [...args, '--cached'] : [...args, ref])
+      ) || '';
     for (const line of ns.split('\n')) {
       const p = line.split('\t');
-      if (p[0] && p[0].startsWith('R') && p.length === 3)
-        renames.set(p[2], p[1]);
+      if (p[0] && p[0].startsWith('R') && p.length === 3) map.set(p[2], p[1]);
     }
-  }
+    return map;
+  };
+
+  const renameMaps = new Map();
+  for (const ref of staged ? ['--cached'] : mergeBases)
+    renameMaps.set(ref, renamesFor(ref));
 
   const problems = [];
 
@@ -177,14 +200,24 @@ function main() {
       // Lines this change wrote: those differing from every base. A file that
       // does not exist at a base is new there, so all its lines count.
       let written = null;
-      const refs = staged ? ['--cached'] : bases;
+      const refs = staged ? ['--cached'] : mergeBases;
       for (const ref of refs) {
-        const src = renames.get(file) || file;
+        const src = renameMaps.get(ref).get(file) || file;
+        // Both paths go to git, otherwise it cannot pair the rename from the new
+        // path alone and reports the file as added in full.
+        const paths = src === file ? [file] : [src, file];
         const existed =
           staged || gitQuiet('cat-file', '-e', `${ref}:${src}`) !== null;
         let d = null;
         if (existed && staged) {
-          d = gitQuiet('diff', '--unified=0', '--cached', '--', file);
+          d = gitQuiet(
+            'diff',
+            '--unified=0',
+            '--find-renames',
+            '--cached',
+            '--',
+            ...paths
+          );
         } else if (existed) {
           d = gitQuiet(
             'diff',
@@ -192,7 +225,7 @@ function main() {
             '--find-renames',
             ref,
             '--',
-            file
+            ...paths
           );
         }
         const ranges =
@@ -275,10 +308,12 @@ function main() {
     for (const [s, e] of hits)
       console.log(`  ${file}:${s}${e > s ? `-${e}` : ''}`);
   }
+  const self =
+    path.relative(root, process.argv[1]) || path.basename(process.argv[1]);
   const scope = staged ? '--staged' : bases.map((b) => `--base ${b}`).join(' ');
   console.log(
     '\nOnly those lines need fixing. The rest of each file is left alone:\n' +
-      `  node scripts/prettier-check-changed.js ${scope} --fix \\\n` +
+      `  node ${self} ${scope} --fix \\\n` +
       problems.map((p) => `    ${p.file}`).join(' \\\n') +
       '\n'
   );
