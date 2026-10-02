@@ -1,5 +1,5 @@
 {
   "*.{js,jsx,ts,tsx,css,scss,json,md,yml,yaml}": [
-    "prettier --check --ignore-unknown"
+    "node scripts/prettier-check-changed.js --staged"
   ]
 }
