@@ -15,7 +15,7 @@ env:
   # Building against OpenSearch-Dashboards 'main' broke the tests when upstream
   # bumped jest to 30 and @testing-library/jest-dom to 6, neither of which this
   # plugin uses.
-  OPENSEARCH_DASHBOARDS_VERSION: 3.6.0
+  OPENSEARCH_DASHBOARDS_VERSION: 3.9.0
 
 jobs:
   Get-CI-Image-Tag:

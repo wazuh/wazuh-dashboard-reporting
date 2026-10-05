@@ -10,7 +10,7 @@ concurrency:
 
 env:
   PLUGIN_NAME: dashboards-reporting
-  OPENSEARCH_DASHBOARDS_VERSION: '3.6.0'
+  OPENSEARCH_DASHBOARDS_VERSION: '3.9.0'
 
 jobs:
   build:
