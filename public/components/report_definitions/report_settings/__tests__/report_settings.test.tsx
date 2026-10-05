@@ -4,11 +4,23 @@
  */
 
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { ReportSettings } from '../report_settings';
 import 'babel-polyfill';
 import 'regenerator-runtime';
 import httpClientMock from '../../../../../test/httpMockClient';
+
+jest.mock('../../../utils/plugins_service', () => ({
+  pluginsService: {
+    hasPlugin: jest.fn().mockReturnValue(true),
+  },
+}));
 
 const emptyRequest = {
   report_params: {
@@ -25,7 +37,7 @@ const emptyRequest = {
     configIds: [],
     title: '',
     textDescription: '',
-    htmlDescription: ''
+    htmlDescription: '',
   },
   trigger: {
     trigger_type: '',
@@ -36,7 +48,7 @@ const emptyRequest = {
   status: '',
 };
 
-let timeRange = {
+const timeRange = {
   timeFrom: new Date(123456789),
   timeTo: new Date(1234567890),
 };
@@ -54,8 +66,8 @@ const dashboardHits = {
           title: 'Mock Dashboard',
         },
         notebook: {
-          name: 'mock notebook name'
-        }
+          name: 'mock notebook name',
+        },
       },
     },
   ],
@@ -71,7 +83,7 @@ const visualizationHits = {
           title: 'Mock Visualization',
         },
         notebook: {
-          name: 'mock notebook name'
+          name: 'mock notebook name',
         },
       },
     },
@@ -87,7 +99,7 @@ const savedSearchHits = {
           title: 'Mock saved search value',
         },
         notebook: {
-          name: 'mock notebook name'
+          name: 'mock notebook name',
         },
       },
     },
@@ -113,7 +125,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('render edit, dashboard source', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Dashboard',
@@ -130,7 +142,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -142,15 +154,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -172,7 +184,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('render edit, visualization source', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -189,7 +201,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -201,15 +213,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -231,7 +243,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('render edit, saved search source', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -251,7 +263,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -263,15 +275,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 
@@ -292,8 +304,8 @@ describe('<ReportSettings /> panel', () => {
     });
   });
 
-  test('render edit, dashboard source', async () => {
-    let report_definition = {
+  test('render edit, saved search source with dashboard hits', async () => {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -323,15 +335,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -352,8 +364,8 @@ describe('<ReportSettings /> panel', () => {
     });
   });
 
-  test('render edit, visualization source', async () => {
-    let report_definition = {
+  test('render edit, saved search source with visualization hits', async () => {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -373,7 +385,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -385,15 +397,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -414,13 +426,12 @@ describe('<ReportSettings /> panel', () => {
     });
   });
 
-
   test('dashboard create from in-context', async () => {
     window.location.assign(
       'http://localhost:5601/app/reports-dashboards#/create?previous=dashboard:abcdefghijklmnop12345?timeFrom=2020-10-26T20:52:56.382Z?timeTo=2020-10-27T20:52:56.384Z'
     );
 
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Dashboard',
@@ -437,7 +448,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -449,15 +460,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
@@ -483,7 +494,7 @@ describe('<ReportSettings /> panel', () => {
       'http://localhost:5601/app/reports-dashboards#/create?previous=visualize:abcdefghijklmnop12345?timeFrom=2020-10-26T20:52:56.382Z?timeTo=2020-10-27T20:52:56.384Z'
     );
 
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -500,7 +511,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -512,15 +523,15 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
@@ -546,7 +557,7 @@ describe('<ReportSettings /> panel', () => {
       'http://localhost:5601/app/reports-dashboards#/create?previous=discover:abcdefghijklmnop12345?timeFrom=2020-10-26T20:52:56.382Z?timeTo=2020-10-27T20:52:56.384Z'
     );
 
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -566,7 +577,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -575,7 +586,7 @@ describe('<ReportSettings /> panel', () => {
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 
@@ -597,7 +608,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('simulate click on dashboard combo box', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -617,7 +628,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -629,19 +640,19 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: dashboardHits,
     });
 
-    const { container } = render(
+    render(
       <ReportSettings
         edit={false}
         reportDefinitionRequest={emptyRequest}
@@ -663,7 +674,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('simulate click on visualization radio', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Visualization',
@@ -680,7 +691,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -692,19 +703,19 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: visualizationHits,
     });
 
-    const { container } = render(
+    render(
       <ReportSettings
         edit={false}
         reportDefinitionRequest={emptyRequest}
@@ -731,7 +742,7 @@ describe('<ReportSettings /> panel', () => {
   });
 
   test('simulate click on saved search radio', async () => {
-    let report_definition = {
+    const reportDefinition = {
       report_params: {
         report_name: 'test create report definition trigger',
         report_source: 'Saved search',
@@ -748,7 +759,7 @@ describe('<ReportSettings /> panel', () => {
         configIds: [],
         title: '',
         textDescription: '',
-        htmlDescription: ''
+        htmlDescription: '',
       },
       trigger: {
         trigger_type: 'Schedule',
@@ -760,19 +771,19 @@ describe('<ReportSettings /> panel', () => {
             interval: {
               period: 1,
               start_time: 123456789,
-              unit: 'Days'
-            }
-          }
+              unit: 'Days',
+            },
+          },
         },
       },
     };
 
     httpClientMock.get = jest.fn().mockResolvedValue({
-      report_definition,
+      report_definition: reportDefinition,
       hits: savedSearchHits,
     });
 
-    const { container } = render(
+    render(
       <ReportSettings
         edit={false}
         reportDefinitionRequest={emptyRequest}

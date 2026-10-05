@@ -1,12 +1,20 @@
 name: FTR E2E Dashboards Reporting Plugin Test
 
-on: [pull_request, push]
+# This workflow is removed because does not work, to be fixed we need to change another repository (opensearch-project/opensearch-dashboards-functional-test)
+# We tried to skip the tests that did not work but for that you must skip other tests that pass and are necessary for the following tests and fail all of them if they are removed.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   CI: 1
   # avoid warnings like "tput: No value for $TERM and no -T specified"
   TERM: xterm
-  OPENSEARCH_DASHBOARDS_VERSION: 'main'
+  OPENSEARCH_DASHBOARDS_VERSION: '3.9.0'
   PLUGIN_NAME: dashboards-reporting
 
 jobs:
@@ -18,6 +26,7 @@ jobs:
         os: [ubuntu-latest]
         jdk: [21]
     runs-on: ${{ matrix.os }}
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Set up JDK
@@ -55,10 +64,10 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-job-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/job-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
@@ -69,17 +78,17 @@ jobs:
           GROUP_PATH="org/opensearch/plugin"
           ARTIFACT="opensearch-reports-scheduler"
           VERSION="${{ env.PLUGIN_VERSION }}-SNAPSHOT"
-          
+
           METADATA_URL="$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/maven-metadata.xml"
           SNAPSHOT_VALUE=$(curl -fsSL "$METADATA_URL" | grep -A1 '<extension>zip</extension>' | grep '<value>' | sed 's/.*<value>\(.*\)<\/value>.*/\1/')
-          
+
           mkdir -p plugin-artifacts
           curl -fL --retry 5 -o plugin-artifacts/reports-scheduler.zip "$BASE/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$SNAPSHOT_VALUE.zip"
 
       - name: Download OpenSearch
-        uses: peternied/download-file@6a5025a112bb8811a2eb5ee6dd3417acf6d928e4 # v2
-        with:
-          url: https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz
+        run: |
+          wget 'https://artifacts.opensearch.org/snapshots/core/opensearch/${{ env.OPENSEARCH_VERSION }}-SNAPSHOT/opensearch-min-${{ env.OPENSEARCH_VERSION }}-SNAPSHOT-linux-x64-latest.tar.gz' --retry-connrefused --tries=3 --no-dns-cache --progress=bar:force:noscroll --verbose
+        shell: bash
 
       - name: Extract OpenSearch
         run: |

@@ -17,6 +17,7 @@ import {
   getResourceSharingAvailableTypes,
   REPORT_DEFINITION_RESOURCE_TYPE,
 } from '../utils/resource_sharing_service';
+import { versionOpensearchShort } from '../utils/utils';
 
 const emptyMessageReportDefinitions = (
   <EuiEmptyPrompt
@@ -43,14 +44,14 @@ const emptyMessageReportDefinitions = (
             { defaultMessage: 'To learn more, see' }
           )}{' '}
           <EuiLink
-            href="https://opensearch.org/docs/dashboards/reporting/"
+            // Wazuh: If OpenSearch fix the link, remove this comment and use their link
+            href={`https://docs.opensearch.org/${versionOpensearchShort}/reporting/report-dashboard-index/`}
             target="_blank"
           >
             {i18n.translate(
               'opensearch.reports.reportDefinitionsTable.emptyMessageReports.getStarted',
               {
-                defaultMessage:
-                  'Get started with OpenSearch Dashboards reporting',
+                defaultMessage: 'Get started with dashboard reporting',
               }
             )}
           </EuiLink>
@@ -196,6 +197,15 @@ export function ReportDefinitions(props) {
         const readable = humanReadableDate(date);
         return <EuiText size="s">{readable}</EuiText>;
       },
+    },
+    {
+      field: 'notificationsEnabled',
+      name: i18n.translate(
+        'opensearch.reports.reportDefinitionsTable.columns.notificationsEnabled',
+        { defaultMessage: 'Notifications' }
+      ),
+      sortable: true,
+      truncateText: false,
     },
     {
       field: 'status',

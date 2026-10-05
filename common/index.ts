@@ -21,6 +21,7 @@ export const OPENSEARCH_REPORTS_API = {
 const REPORTING_NOTIFICATIONS_API_PREFIX = '/api/reporting_notifications';
 export const REPORTING_NOTIFICATIONS_DASHBOARDS_API = Object.freeze({
   GET_CONFIGS: `${REPORTING_NOTIFICATIONS_API_PREFIX}/get_configs`,
+  GET_CONFIG: `${REPORTING_NOTIFICATIONS_API_PREFIX}/get_config`,
   GET_EVENT: `${REPORTING_NOTIFICATIONS_API_PREFIX}/get_event`,
   SEND_TEST_MESSAGE: `${REPORTING_NOTIFICATIONS_API_PREFIX}/test_message`,
 });
@@ -28,6 +29,14 @@ export const REPORTING_NOTIFICATIONS_DASHBOARDS_API = Object.freeze({
 const NOTIFICATIONS_API_BASE_PATH = '/_plugins/_notifications';
 export const NOTIFICATIONS_API = Object.freeze({
   CONFIGS: `${NOTIFICATIONS_API_BASE_PATH}/configs`,
-  EVENTS: `${NOTIFICATIONS_API_BASE_PATH}/events`,
+  EVENTS: `${NOTIFICATIONS_API_BASE_PATH}/get_event`,
   TEST_MESSAGE: `${NOTIFICATIONS_API_BASE_PATH}/feature/test`,
+});
+
+export const WAZUH_PACKAGES_BASE_URL =
+  'https://packages.wazuh.com/production/5.x/resources/reporting';
+
+export const WAZUH_EMAIL_IMAGES = Object.freeze({
+  LOGO_WHITE: `${WAZUH_PACKAGES_BASE_URL}/wazuh-mail-white-logo.png`,
+  EMAIL_ICON: `${WAZUH_PACKAGES_BASE_URL}/open-mail-notification.png`,
 });

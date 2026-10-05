@@ -4,7 +4,17 @@
   "description": "OpenSearch Dashboards Reports Plugin",
   "license": "Apache-2.0",
   "main": "index.ts",
+  "opensearchDashboards": {
+    "version": "3.9.0",
+    "templateVersion": "3.9.0"
+  },
+  "wazuh": {
+    "version": "5.1.0",
+    "revision": "01"
+  },
   "scripts": {
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
     "osd": "node ../../scripts/osd",
     "opensearch": "node ../../scripts/opensearch",
     "lint:es": "node ../../scripts/eslint",
@@ -35,6 +45,9 @@
     "tesseract.js": "^4.0.2"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^2.1.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/set-interval-async": "^1.0.0",
     "elastic-builder": "^2.7.1",

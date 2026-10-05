@@ -23,6 +23,7 @@ import {
   REPORT_INSTANCE_RESOURCE_TYPE,
 } from '../utils/resource_sharing_service';
 import { GenerateReportLoadingModal } from './loading_modal';
+import { versionOpensearchShort } from '../utils/utils';
 
 const reportStatusOptions = [
   'Created',
@@ -61,14 +62,14 @@ const emptyMessageReports = (
             { defaultMessage: 'To learn more, see' }
           )}{' '}
           <EuiLink
-            href="https://opensearch.org/docs/dashboards/reporting/"
+            // Wazuh: If OpenSearch fix the link, remove this comment and use their link
+            href={`https://docs.opensearch.org/${versionOpensearchShort}/reporting/report-dashboard-index/`}
             target="_blank"
           >
             {i18n.translate(
               'opensearch.reports.reportsTable.emptyMessageReports.getStarted',
               {
-                defaultMessage:
-                  'Get started with OpenSearch Dashboards reporting',
+                defaultMessage: 'Get started with dashboard reporting',
               }
             )}
             <EuiIcon type="popout" />
@@ -90,8 +91,8 @@ export function ReportsTable(props) {
     dataSourceId,
   } = props;
 
-  const [sortField, setSortField] = useState('timeCreated');
-  const [sortDirection, setSortDirection] = useState('des');
+  const [sortField] = useState('timeCreated');
+  const [sortDirection] = useState('des');
   const [showLoading, setShowLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [resourceSharing, setResourceSharing] = useState<{

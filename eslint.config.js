@@ -13,6 +13,13 @@ const LICENSE_HEADER = `/*
  * SPDX-License-Identifier: Apache-2.0
  */`;
 
+const WAZUH_LICENSE_HEADER = `
+/*
+ * Copyright Wazuh
+ * SPDX-License-Identifier: Apache-2.0
+ */
+`;
+
 module.exports = [
   // Replaces .eslintignore (ESLint 10 no longer reads it).
   {
@@ -98,7 +105,7 @@ module.exports = [
       ],
       '@osd/eslint/require-license-header': [
         'error',
-        { licenses: [LICENSE_HEADER] },
+        { licenses: [LICENSE_HEADER, WAZUH_LICENSE_HEADER] },
       ],
     },
   },

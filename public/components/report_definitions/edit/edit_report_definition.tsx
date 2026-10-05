@@ -16,17 +16,22 @@ import {
   EuiSpacer,
   EuiGlobalToastList,
 } from '@elastic/eui';
-import { ReportSettings } from '../report_settings';
-import { ReportTrigger } from '../report_trigger';
 import { ReportDefinitionSchemaType } from 'server/model';
+import { ReportSettings } from '../report_settings';
 import { converter } from '../utils';
 import {
   permissionsMissingToast,
   permissionsMissingActions,
 } from '../../utils/utils';
 import { definitionInputValidation } from '../utils/utils';
+import { ReportDelivery } from '../delivery';
+import { uiSettingsService } from '../../utils/settings_service';
 
-export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?: any; httpClient?: any; }) {
+export function EditReportDefinition(props: {
+  [x: string]: any;
+  setBreadcrumbs?: any;
+  httpClient?: any;
+}) {
   const [toasts, setToasts] = useState([]);
   const [comingFromError, setComingFromError] = useState(false);
   const [preErrorData, setPreErrorData] = useState({});
@@ -125,29 +130,11 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
     addErrorUpdatingReportDefinitionToastHandler(errorType);
   };
 
-  const addErrorDeletingReportDefinitionToastHandler = () => {
-    const errorToast = {
-      title: i18n.translate(
-        'opensearch.reports.editReportDefinition.errorDeleting',
-        { defaultMessage: 'Error deleting old scheduled report definition.' }
-      ),
-      color: 'danger',
-      iconType: 'alert',
-      id: 'errorDeleteToast',
-    };
-    // @ts-ignore
-    setToasts(toasts.concat(errorToast));
-  };
-
-  const handleErrorDeletingReportDefinitionToast = () => {
-    addErrorDeletingReportDefinitionToastHandler();
-  };
-
-  const removeToast = (removedToast: { id: any; }) => {
+  const removeToast = (removedToast: { id: any }) => {
     setToasts(toasts.filter((toast: any) => toast.id !== removedToast.id));
   };
 
-  const reportDefinitionId = props['match']['params']['reportDefinitionId'];
+  const reportDefinitionId = props.match.params.reportDefinitionId;
   let reportDefinition: ReportDefinitionSchemaType;
   let editReportDefinitionRequest = {
     report_params: {
@@ -164,7 +151,7 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
       configIds: [],
       title: '',
       textDescription: '',
-      htmlDescription: ''
+      htmlDescription: '',
     },
     trigger: {
       trigger_type: '',
@@ -175,7 +162,7 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
   };
   reportDefinition = editReportDefinitionRequest; // initialize reportDefinition object
 
-  let timeRange = {
+  const timeRange = {
     timeFrom: new Date(),
     timeTo: new Date(),
   };
@@ -190,11 +177,14 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
       .put(`../api/reporting/reportDefinitions/${reportDefinitionId}`, {
         body: JSON.stringify(metadata),
         params: reportDefinitionId.toString(),
+        query: {
+          reportServerUrl: uiSettingsService.getSearchParams().reportServerUrl,
+        },
       })
       .then(async () => {
         window.location.assign(`reports-dashboards#/edit=success`);
       })
-      .catch((error: { body: { statusCode: number; }; }) => {
+      .catch((error: { body: { statusCode: number } }) => {
         console.log('error in updating report definition:', error);
         if (error.body.statusCode === 400) {
           handleInputValidationErrorToast();
@@ -208,7 +198,9 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
       });
   };
 
-  const editReportDefinition = async (metadata: { report_params: {core_params: {header: string, footer: string}}}) => {
+  const editReportDefinition = async (metadata: {
+    report_params: { core_params: { header: string; footer: string } };
+  }) => {
     if ('header' in metadata.report_params.core_params) {
       metadata.report_params.core_params.header = converter.makeHtml(
         metadata.report_params.core_params.header
@@ -232,7 +224,7 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
       setShowTriggerIntervalNaNError,
       timeRange,
       setShowTimeRangeError,
-      setShowCronError,
+      setShowCronError
     ).then((response) => {
       error = response;
     });
@@ -277,7 +269,7 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
           },
         ]);
       })
-      .catch((error: { body: { statusCode: number; }; }) => {
+      .catch((error: { body: { statusCode: number } }) => {
         console.error(
           'error when loading edit report definition page: ',
           error
@@ -305,7 +297,7 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
           edit={true}
           editDefinitionId={reportDefinitionId}
           reportDefinitionRequest={editReportDefinitionRequest}
-          httpClientProps={props['httpClient']}
+          httpClientProps={props.httpClient}
           timeRange={timeRange}
           showSettingsReportNameError={showSettingsReportNameError}
           settingsReportNameErrorMessage={settingsReportNameErrorMessage}
@@ -314,6 +306,13 @@ export function EditReportDefinition(props: { [x: string]: any; setBreadcrumbs?:
           showTimeRangeError={showTimeRangeError}
           showTriggerIntervalNaNError={showTriggerIntervalNaNError}
           showCronError={showCronError}
+        />
+        <EuiSpacer />
+        <ReportDelivery
+          edit={true}
+          editDefinitionId={reportDefinitionId}
+          reportDefinitionRequest={editReportDefinitionRequest}
+          httpClientProps={props.httpClient}
         />
         <EuiSpacer />
         <EuiFlexGroup justifyContent="flexEnd">

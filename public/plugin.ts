@@ -21,6 +21,8 @@ import {
   ReportsDashboardsPluginSetup,
   ReportsDashboardsPluginStart,
 } from './types';
+import { pluginsService } from './components/utils/plugins_service';
+import { generateInContextPDFReport } from './components/context_menu/context_menu';
 
 export interface ReportingPluginSetupDependencies {
   dataSource: DataSourcePluginSetup;
@@ -42,11 +44,10 @@ export class ReportsDashboardsPlugin
           defaultMessage: PLUGIN_NAME,
         }),
         category: {
-          id: 'opensearch',
-          label: i18n.translate('opensearch.reports.categoryName', {
-            defaultMessage: 'OpenSearch Plugins',
-          }),
-          order: 2000,
+          id: 'explore',
+          label: 'Explore',
+          order: 100,
+          euiIconType: 'search',
         },
         order: 2000,
         async mount(params: AppMountParameters) {
@@ -68,9 +69,17 @@ export class ReportsDashboardsPlugin
     return {};
   }
 
-  public start(core: CoreStart): ReportsDashboardsPluginStart {
+  public start(
+    core: CoreStart,
+    plugins: ReportsDashboardsPluginStart
+  ): ReportsDashboardsPluginStart {
     applicationService.init(core.application);
-    return {};
+    pluginsService.init(plugins);
+    return {
+      // Wazuh Dashboard Reporting - Generate PDF report exposed method
+      generateInContextPDFReport,
+      // End Wazuh Dashboard Reporting - Generate PDF report exposed method
+    };
   }
 
   public stop() {}

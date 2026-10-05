@@ -1,16 +1,17 @@
 <img src="https://opensearch.org/assets/img/opensearch-logo-themed.svg" height="64px">
 
-- [OpenSearch Dashboards Reports](#opensearch-dashboards-reporting)
-- [Code Summary](#code-summary)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [Setup](#setup-&-build)
-- [Notifications Integration](#notifications-integration)
-- [Troubleshooting](#troubleshooting)
-- [Code of Conduct](#code-of-conduct)
-- [Security](#security)
-- [License](#license)
-- [Copyright](#copyright)
+- [OpenSearch Dashboards Reports](#opensearch-dashboards-reports)
+  - [Code Summary](#code-summary)
+    - [Dashboard-Reports](#dashboard-reports)
+    - [Repository Checks](#repository-checks)
+    - [Issues](#issues)
+  - [Documentation \& Forum](#documentation--forum)
+  - [Contributing](#contributing)
+  - [Setup \& Build](#setup--build)
+  - [Code of Conduct](#code-of-conduct)
+  - [Security](#security)
+  - [License](#license)
+  - [Copyright](#copyright)
 
 # OpenSearch Dashboards Reports
 
@@ -73,7 +74,23 @@ OpenSearch Dashboards Reports allows ‘Report Owner’ (engineers, including bu
 
 ## Documentation & Forum
 
-Please see our technical [documentation](https://opensearch.org/docs/dashboards/reporting/) to learn more about its features. For additional help with the plugin, including questions about opening an issue, try the OpenSearch [Forum](https://forum.opensearch.org/c/opensearch-dashboards/reports/51).
+Please see our technical [documentation](https://docs.opensearch.org/3.1/reporting/report-dashboard-index/) to learn more about its features. For additional help with the plugin, including questions about opening an issue, try the OpenSearch [Forum](https://forum.opensearch.org/c/opensearch-dashboards/reports/51).
+
+## Configuration
+
+### Advanced Settings
+
+You can configure the following reporting settings in **Management > Advanced Settings**:
+
+#### Reporting Server URL (`reporting:reportServerUrl`)
+
+Custom server URL for report generation. This setting is available for custom implementations that need to override the default server URL.
+
+**Default:** Empty string  
+**Type:** String  
+**Example:** `https://example.com:5601`
+
+**Note:** This setting is passed as a query parameter to report generation endpoints and can be used by custom report handlers. By default, it is not automatically applied unless custom logic is implemented.
 
 ## Contributing
 

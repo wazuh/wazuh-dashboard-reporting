@@ -1,15 +1,22 @@
 name: Lint
 
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   PLUGIN_NAME: dashboards-reporting
-  OPENSEARCH_DASHBOARDS_VERSION: 'main'
+  OPENSEARCH_DASHBOARDS_VERSION: '3.9.0'
 
 jobs:
   build:
     name: Lint
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Checkout OpenSearch Dashboards
@@ -62,16 +69,10 @@ jobs:
       - name: Lint Changed Files
         run: |
           jq -r '.[]' ${HOME}/files_modified.json ${HOME}/files_added.json | sort | uniq > /tmp/changed_files.txt
-          CHANGED_FILES=$(cat /tmp/changed_files.txt)
+          CHANGED_FILES=$(grep -E '\.(js|jsx|ts|tsx)$' /tmp/changed_files.txt || true)
           echo "These are the changed files: $CHANGED_FILES"
           if [[ -n "$CHANGED_FILES" ]]; then
-            echo "Linting changed files..."
-            while IFS= read -r file; do
-              if [[ $file == *.js || $file == *.ts || $file == *.tsx ]]; then
-                echo "linting file $file"
-                yarn lint "$file"
-              fi
-            done < /tmp/changed_files.txt
+            yarn lint $CHANGED_FILES
           else
             echo "No matched files to lint."
           fi
