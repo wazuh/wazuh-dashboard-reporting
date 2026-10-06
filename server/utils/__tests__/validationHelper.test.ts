@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ReportDefinitionSchemaType, ReportSchemaType } from '../../model';
+import {
+  dataReportSchema,
+  reportSchema,
+  ReportDefinitionSchemaType,
+  ReportSchemaType,
+  visualReportSchema,
+} from '../../model';
 import {
   FORMAT,
   REPORT_TYPE,
@@ -131,6 +137,50 @@ const createReportDefinitionNotebookPostNavBarInput: ReportDefinitionSchemaType 
     trigger_type: TRIGGER_TYPE.onDemand,
   },
 };
+
+// Repeats a segment so that, in the previous relative url regex, each
+// backtrack position of the first tenant group re-scanned the second one.
+const buildOversizedUrl = (length: number) =>
+  '/app/notebooks-dashboards?view=output_only&security_tenant=x' +
+  '?security_tenant=x'.repeat(Math.ceil(length / 18));
+
+describe('url length cap', () => {
+  const oversizedUrl = buildOversizedUrl(200_000);
+  const schemas: Array<[string, () => unknown]> = [
+    [
+      'reportSchema.query_url',
+      () =>
+        reportSchema.validate({
+          ...createReportInput,
+          query_url: oversizedUrl,
+        }),
+    ],
+    [
+      'dataReportSchema.base_url',
+      () =>
+        dataReportSchema.validate({
+          ...createReportDefinitionInput.report_params.core_params,
+          saved_search_id: 'id',
+          report_format: FORMAT.csv,
+          base_url: oversizedUrl,
+        }),
+    ],
+    [
+      'visualReportSchema.base_url',
+      () =>
+        visualReportSchema.validate({
+          ...createReportDefinitionInput.report_params.core_params,
+          base_url: oversizedUrl,
+        }),
+    ],
+  ];
+
+  it.each(schemas)('%s rejects an oversized url quickly', (_name, validate) => {
+    const start = Date.now();
+    expect(validate).toThrowError(/maximum length of \[2048\]/);
+    expect(Date.now() - start).toBeLessThan(200);
+  });
+});
 
 describe('test input validation', () => {
   test('create report with correct saved object id', async () => {
