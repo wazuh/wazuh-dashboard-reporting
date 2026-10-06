@@ -250,6 +250,24 @@ describe('test input validation', () => {
     );
   });
 
+  test.each([['?_g=(filters:!(),time:(from:now-15m))'], ['?a'.repeat(900)]])(
+    'saved object id ignores the query string %#',
+    async (queryString) => {
+      const client = mockOpenSearchClient([
+        `dashboard:${SAMPLE_SAVED_OBJECT_ID}`,
+      ]);
+      const input = JSON.parse(JSON.stringify(createReportDefinitionInput));
+      input.report_params.core_params.base_url += queryString;
+      await expect(
+        validateReportDefinition(client, input)
+      ).resolves.toBeDefined();
+      expect(client.callAsCurrentUser).toHaveBeenCalledWith('exists', {
+        index: '.kibana',
+        id: `dashboard:${SAMPLE_SAVED_OBJECT_ID}`,
+      });
+    }
+  );
+
   test('validation against query_url', async () => {
     const urls: Array<[string, boolean]> = [
       ['/app/dashboards#/view/7adfa750-4c81-11e8-b3d7-01146121b73d?_g=', true],

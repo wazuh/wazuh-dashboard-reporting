@@ -93,10 +93,7 @@ const validateSavedObject = async (
   source: REPORT_TYPE
 ) => {
   const getId = (url: string) => {
-    return url
-      .split('/')
-      .pop()
-      ?.replace(/\?\S+$/, '');
+    return url.split('/').pop()?.split('?')[0];
   };
   const getType = (source: REPORT_TYPE) => {
     switch (source) {
