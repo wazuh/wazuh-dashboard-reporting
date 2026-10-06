@@ -144,7 +144,7 @@ const buildOversizedUrl = (length: number) =>
   '/app/notebooks-dashboards?view=output_only&security_tenant=x' +
   '?security_tenant=x'.repeat(Math.ceil(length / 18));
 
-describe('url length cap', () => {
+describe('relative url validation cost', () => {
   const oversizedUrl = buildOversizedUrl(200_000);
   const schemas: Array<[string, () => unknown]> = [
     [
@@ -175,11 +175,14 @@ describe('url length cap', () => {
     ],
   ];
 
-  it.each(schemas)('%s rejects an oversized url quickly', (_name, validate) => {
-    const start = Date.now();
-    expect(validate).toThrowError(/maximum length of \[2048\]/);
-    expect(Date.now() - start).toBeLessThan(500);
-  });
+  it.each(schemas)(
+    '%s validates a large url in linear time',
+    (_name, validate) => {
+      const start = Date.now();
+      expect(validate).toThrowError(/invalid relative url/);
+      expect(Date.now() - start).toBeLessThan(500);
+    }
+  );
 });
 
 describe('test input validation', () => {

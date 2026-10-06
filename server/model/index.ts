@@ -22,9 +22,6 @@ import {
   DEFAULT_MAX_SIZE,
 } from '../routes/utils/constants';
 
-// Caps the length of user-supplied urls before the relative url validation runs
-const MAX_URL_LENGTH = 2048;
-
 export const dataReportSchema = schema.object({
   // Need this to build the links in email
   origin: schema.uri(), //e.g. https://xxxxx.com
@@ -35,7 +32,6 @@ export const dataReportSchema = schema.object({
       }
     },
     minLength: 1,
-    maxLength: MAX_URL_LENGTH,
   }),
   saved_search_id: schema.string(),
   //ISO duration format. 'PT10M' means 10 min
@@ -82,7 +78,6 @@ export const visualReportSchema = schema.object({
       }
     },
     minLength: 1,
-    maxLength: MAX_URL_LENGTH,
   }),
   window_width: schema.number({ defaultValue: 1600, min: 0 }),
   window_height: schema.number({ defaultValue: 800, min: 0 }),
@@ -260,7 +255,6 @@ export const reportSchema = schema.object({
       }
     },
     minLength: 1,
-    maxLength: MAX_URL_LENGTH,
   }),
   time_from: schema.number(),
   time_to: schema.number(),
