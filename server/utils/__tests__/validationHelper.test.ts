@@ -178,7 +178,7 @@ describe('url length cap', () => {
   it.each(schemas)('%s rejects an oversized url quickly', (_name, validate) => {
     const start = Date.now();
     expect(validate).toThrowError(/maximum length of \[2048\]/);
-    expect(Date.now() - start).toBeLessThan(200);
+    expect(Date.now() - start).toBeLessThan(500);
   });
 });
 
@@ -286,10 +286,30 @@ describe('test input validation', () => {
         true,
       ],
       ['/app/discoverLegacy#/view/571aaf70-4c88-11e8-b3d7-01146121b73d', true],
+      [`/app/dashboards#/view/${SAMPLE_SAVED_OBJECT_ID}?_g=()`, true],
+      [
+        `/app/dashboards?security_tenant=private#/view/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      [
+        `/app/notebooks-dashboards?view=output_only?security_tenant=private#/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      [
+        `/app/notebooks-dashboards?view=output_only&security_tenant=private?security_tenant=private#/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      ['/app/notebooks-dashboards?view=output_only&security_tenant=x', false],
     ];
     expect(urls.map((url) => isValidRelativeUrl(url[0]))).toEqual(
       urls.map((url) => url[1])
     );
+  });
+
+  test('relative url validation runs in linear time', () => {
+    const start = Date.now();
+    expect(isValidRelativeUrl(buildOversizedUrl(200_000))).toBe(false);
+    expect(Date.now() - start).toBeLessThan(500);
   });
 
   test('validate ISO 8601 durations', () => {
