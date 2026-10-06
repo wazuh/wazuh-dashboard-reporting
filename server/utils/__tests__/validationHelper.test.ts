@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Wazuh: Also import the report schemas to exercise URL validation in tests.
+// import { ReportDefinitionSchemaType, ReportSchemaType } from '../../model';
 import {
   dataReportSchema,
   reportSchema,
@@ -138,6 +140,7 @@ const createReportDefinitionNotebookPostNavBarInput: ReportDefinitionSchemaType 
   },
 };
 
+// Wazuh: Added coverage for the linear-time URL validation.
 // Repeats a segment so that, in the previous relative url regex, each
 // backtrack position of the first tenant group re-scanned the second one.
 const buildOversizedUrl = (length: number) =>
@@ -253,6 +256,7 @@ describe('test input validation', () => {
     );
   });
 
+  // Wazuh: Added coverage for stripping the query string from the saved object id.
   test.each([['?_g=(filters:!(),time:(from:now-15m))'], ['?a'.repeat(900)]])(
     'saved object id ignores the query string %#',
     async (queryString) => {
@@ -307,6 +311,7 @@ describe('test input validation', () => {
         true,
       ],
       ['/app/discoverLegacy#/view/571aaf70-4c88-11e8-b3d7-01146121b73d', true],
+      // Wazuh: Added cases to lock the accepted URL set after the regex rewrite.
       [`/app/dashboards#/view/${SAMPLE_SAVED_OBJECT_ID}?_g=()`, true],
       [
         `/app/dashboards?security_tenant=private#/view/${SAMPLE_SAVED_OBJECT_ID}`,
@@ -327,6 +332,7 @@ describe('test input validation', () => {
     );
   });
 
+  // Wazuh: Added to guard against a regression to superlinear URL validation.
   test('relative url validation runs in linear time', () => {
     const start = Date.now();
     expect(isValidRelativeUrl(buildOversizedUrl(200_000))).toBe(false);

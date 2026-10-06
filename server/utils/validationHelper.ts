@@ -37,6 +37,10 @@ export const isValidRelativeUrl = (relativeUrl: string) => {
 export const regexDuration = /^([-+]?)P(?=\d|T[-+]?\d)(?:([-+]?\d+)Y)?(?:([-+]?\d+)M)?(?:([-+]?\d+)([DW]))?(?:T(?:([-+]?\d+)H)?(?:([-+]?\d+)M)?(?:([-+]?\d+(?:\.\d+)?)S)?)?$/;
 export const regexEmailAddress = /\S+@\S+\.\S+/;
 export const regexReportName = /^[\w\-\s\(\)\[\]\,\_\-+]+$/;
+// Wazuh: Rewrote this regex to validate in linear time. The two optional
+// security_tenant groups were merged so a long input can no longer make the
+// matcher backtrack quadratically. The accepted URL set is unchanged.
+// export const regexRelativeUrl = /^\/(_plugin\/kibana\/|_dashboards\/)?app\/(dashboards|visualize|discover|discoverLegacy|data-explorer\/discover\/?|observability-dashboards|observability-notebooks|notebooks-dashboards\?view=output_only(&security_tenant=.+)?)(\?security_tenant=.+)?#\/(notebooks\/|view\/|edit\/)?[^\/]+$/;
 export const regexRelativeUrl =
   /^\/(_plugin\/kibana\/|_dashboards\/)?app\/(?:(?:dashboards|visualize|discover|discoverLegacy|data-explorer\/discover\/?|observability-dashboards|observability-notebooks)(?:\?security_tenant=.+)?|notebooks-dashboards\?view=output_only(?:[&?]security_tenant=.+)?)#\/(notebooks\/|view\/|edit\/)?[^\/]+$/;
 
@@ -93,6 +97,12 @@ const validateSavedObject = async (
   source: REPORT_TYPE
 ) => {
   const getId = (url: string) => {
+    // Wazuh: Strip the query string with split instead of a regex, which
+    // backtracked quadratically on a long last path segment.
+    // return url
+    //   .split('/')
+    //   .pop()
+    //   ?.replace(/\?\S+$/, '');
     return url.split('/').pop()?.split('?')[0];
   };
   const getType = (source: REPORT_TYPE) => {
