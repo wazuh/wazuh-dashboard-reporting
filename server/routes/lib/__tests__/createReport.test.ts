@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Wazuh: Added coverage for the saved search report row cap.
 import { createReport } from '../createReport';
 import { createSavedSearchReport } from '../../utils/savedSearchReportHelper';
 import { REPORT_TYPE } from '../../utils/constants';

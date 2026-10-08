@@ -7,6 +7,7 @@ import {
   REPORT_TYPE,
   DATA_REPORT_CONFIG,
   EXTRA_HEADERS,
+  // Wazuh: Default for the saved search report row cap.
   DEFAULT_MAX_SIZE,
 } from '../utils/constants';
 
@@ -17,6 +18,8 @@ import {
   RequestHandlerContext,
 } from '../../../../../src/core/server';
 import { createSavedSearchReport } from '../utils/savedSearchReportHelper';
+// Wazuh: Import DataReportSchemaType for the saved search report row cap.
+// import { ReportSchemaType, VisualReportSchemaType } from '../../model';
 import {
   DataReportSchemaType,
   ReportSchemaType,
@@ -76,7 +79,8 @@ export const createReport = async (
     }
     // generate report
     if (reportSource === REPORT_TYPE.savedSearch) {
-      // reports.csv.maxRows is registered by wazuh-core; fall back when it is absent.
+      // Wazuh: Cap saved search report rows at reports.csv.maxRows, registered
+      // by wazuh-core. Fall back to the default when the setting is absent.
       const maxRows =
         (await context.core.uiSettings.client.get<number>(
           'reports.csv.maxRows'
