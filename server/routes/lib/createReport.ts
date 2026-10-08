@@ -7,6 +7,7 @@ import {
   REPORT_TYPE,
   DATA_REPORT_CONFIG,
   EXTRA_HEADERS,
+  DEFAULT_MAX_SIZE,
 } from '../utils/constants';
 
 import {
@@ -16,7 +17,11 @@ import {
   RequestHandlerContext,
 } from '../../../../../src/core/server';
 import { createSavedSearchReport } from '../utils/savedSearchReportHelper';
-import { ReportSchemaType, VisualReportSchemaType } from '../../model';
+import {
+  DataReportSchemaType,
+  ReportSchemaType,
+  VisualReportSchemaType,
+} from '../../model';
 import { CreateReportResultType } from '../utils/types';
 import { saveReport } from './saveReport';
 import { ReportingConfig } from 'server';
@@ -71,6 +76,18 @@ export const createReport = async (
     }
     // generate report
     if (reportSource === REPORT_TYPE.savedSearch) {
+      // reports.csv.maxRows is registered by wazuh-core; fall back when it is absent.
+      const maxRows =
+        (await context.core.uiSettings.client.get<number>(
+          'reports.csv.maxRows'
+        )) || DEFAULT_MAX_SIZE;
+      const coreParams = reportParams.core_params as DataReportSchemaType;
+      if (coreParams.limit > maxRows) {
+        logger.warn(
+          `Saved search report limit ${coreParams.limit} exceeds reports.csv.maxRows; using ${maxRows}`
+        );
+        coreParams.limit = maxRows;
+      }
       createReportResult = await createSavedSearchReport(
         report,
         opensearchClient,
