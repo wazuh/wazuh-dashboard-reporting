@@ -3,7 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ReportDefinitionSchemaType, ReportSchemaType } from '../../model';
+// Wazuh: Also import the report schemas to exercise URL validation in tests.
+// import { ReportDefinitionSchemaType, ReportSchemaType } from '../../model';
+import {
+  dataReportSchema,
+  reportSchema,
+  ReportDefinitionSchemaType,
+  ReportSchemaType,
+  visualReportSchema,
+} from '../../model';
 import {
   FORMAT,
   REPORT_TYPE,
@@ -132,6 +140,54 @@ const createReportDefinitionNotebookPostNavBarInput: ReportDefinitionSchemaType 
   },
 };
 
+// Wazuh: Added coverage for the linear-time URL validation.
+// Repeats a segment so that, in the previous relative url regex, each
+// backtrack position of the first tenant group re-scanned the second one.
+const buildOversizedUrl = (length: number) =>
+  '/app/notebooks-dashboards?view=output_only&security_tenant=x' +
+  '?security_tenant=x'.repeat(Math.ceil(length / 18));
+
+describe('relative url validation cost', () => {
+  const oversizedUrl = buildOversizedUrl(200_000);
+  const schemas: Array<[string, () => unknown]> = [
+    [
+      'reportSchema.query_url',
+      () =>
+        reportSchema.validate({
+          ...createReportInput,
+          query_url: oversizedUrl,
+        }),
+    ],
+    [
+      'dataReportSchema.base_url',
+      () =>
+        dataReportSchema.validate({
+          ...createReportDefinitionInput.report_params.core_params,
+          saved_search_id: 'id',
+          report_format: FORMAT.csv,
+          base_url: oversizedUrl,
+        }),
+    ],
+    [
+      'visualReportSchema.base_url',
+      () =>
+        visualReportSchema.validate({
+          ...createReportDefinitionInput.report_params.core_params,
+          base_url: oversizedUrl,
+        }),
+    ],
+  ];
+
+  it.each(schemas)(
+    '%s validates a large url in linear time',
+    (_name, validate) => {
+      const start = Date.now();
+      expect(validate).toThrowError(/invalid relative url/);
+      expect(Date.now() - start).toBeLessThan(500);
+    }
+  );
+});
+
 describe('test input validation', () => {
   test('create report with correct saved object id', async () => {
     const savedObjectIds = [`dashboard:${SAMPLE_SAVED_OBJECT_ID}`];
@@ -200,6 +256,25 @@ describe('test input validation', () => {
     );
   });
 
+  // Wazuh: Added coverage for stripping the query string from the saved object id.
+  test.each([['?_g=(filters:!(),time:(from:now-15m))'], ['?a'.repeat(900)]])(
+    'saved object id ignores the query string %#',
+    async (queryString) => {
+      const client = mockOpenSearchClient([
+        `dashboard:${SAMPLE_SAVED_OBJECT_ID}`,
+      ]);
+      const input = JSON.parse(JSON.stringify(createReportDefinitionInput));
+      input.report_params.core_params.base_url += queryString;
+      await expect(
+        validateReportDefinition(client, input)
+      ).resolves.toBeDefined();
+      expect(client.callAsCurrentUser).toHaveBeenCalledWith('exists', {
+        index: '.kibana',
+        id: `dashboard:${SAMPLE_SAVED_OBJECT_ID}`,
+      });
+    }
+  );
+
   test('validation against query_url', async () => {
     const urls: Array<[string, boolean]> = [
       ['/app/dashboards#/view/7adfa750-4c81-11e8-b3d7-01146121b73d?_g=', true],
@@ -236,10 +311,32 @@ describe('test input validation', () => {
         true,
       ],
       ['/app/discoverLegacy#/view/571aaf70-4c88-11e8-b3d7-01146121b73d', true],
+      // Wazuh: Added cases to lock the accepted URL set after the regex rewrite.
+      [`/app/dashboards#/view/${SAMPLE_SAVED_OBJECT_ID}?_g=()`, true],
+      [
+        `/app/dashboards?security_tenant=private#/view/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      [
+        `/app/notebooks-dashboards?view=output_only?security_tenant=private#/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      [
+        `/app/notebooks-dashboards?view=output_only&security_tenant=private?security_tenant=private#/${SAMPLE_SAVED_OBJECT_ID}`,
+        true,
+      ],
+      ['/app/notebooks-dashboards?view=output_only&security_tenant=x', false],
     ];
     expect(urls.map((url) => isValidRelativeUrl(url[0]))).toEqual(
       urls.map((url) => url[1])
     );
+  });
+
+  // Wazuh: Added to guard against a regression to superlinear URL validation.
+  test('relative url validation runs in linear time', () => {
+    const start = Date.now();
+    expect(isValidRelativeUrl(buildOversizedUrl(200_000))).toBe(false);
+    expect(Date.now() - start).toBeLessThan(500);
   });
 
   test('validate ISO 8601 durations', () => {
