@@ -23,7 +23,6 @@ import {
   EuiCompressedCheckboxGroup,
   EuiCompressedComboBox,
   EuiFormRow,
-  EuiCallOut,
 } from '@elastic/eui';
 import ReactMde from 'react-mde';
 import { ReportDefinitionSchemaType } from 'server/model';
@@ -58,6 +57,8 @@ import { TimeRangeSelect } from './time_range';
 import { converter } from '../utils';
 import { ReportTrigger } from '../report_trigger';
 import { pluginsService } from '../../utils/plugins_service';
+// Wazuh: Row cap callout for saved search reports.
+import { RowCapCallout } from '../../utils/row_cap';
 
 interface ReportSettingProps {
   edit: boolean;
@@ -822,23 +823,8 @@ export function ReportSettings(props: ReportSettingProps) {
           />
         </EuiCompressedFormRow>
         <EuiSpacer />
-        {savedSearchRecordLimit > 10000 ? (
-          <>
-            <EuiCallOut
-              color="primary"
-              title={i18n.translate(
-                'opensearch.reports.reportSettingProps.form.savedSearchLargeRecordLimitWarning',
-                {
-                  defaultMessage:
-                    'Generating reports with a large number of records can cause memory issues',
-                }
-              )}
-              iconType="iInCircle"
-              size="s"
-            />
-            <EuiSpacer size="xs" />
-          </>
-        ) : null}
+        {/* Wazuh: Warn when the record limit is above reports.csv.maxRows. */}
+        <RowCapCallout limit={savedSearchRecordLimit} />
         <EuiFormRow
           id="reportSourceSavedSearchRecordLimit"
           label={i18n.translate(
