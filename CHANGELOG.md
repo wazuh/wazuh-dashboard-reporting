@@ -26,6 +26,7 @@
 | [#104](https://github.com/wazuh/wazuh-dashboard-reporting/issues/104) | Fixed the validation of the notification plugin |
 | [#133](https://github.com/wazuh/wazuh-dashboard-reporting/issues/133) | Fixed custom filter buttons not being rendered in pdf reports |
 | [#226](https://github.com/wazuh/wazuh-dashboard-reporting/issues/226) | Fixed the configured report footer missing from the generated report |
+| [wazuh-dashboard-plugins#9445](https://github.com/wazuh/wazuh-dashboard-plugins/issues/9445) | Fixed the report success toast closing after 6 seconds, before its Reports link could be clicked |
 
 ## Prior versions
 
