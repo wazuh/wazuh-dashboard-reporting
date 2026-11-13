@@ -83,10 +83,9 @@ export const addSuccessOrFailureToast = (status, reportSource) => {
     try {
       const generateInProgressToast = document.createElement('div');
       if (status === 'success') {
+        // Wazuh: keep the success toast until it is dismissed, so its Reports link stays reachable
+        document.getElementById('reportSuccessToast')?.remove();
         generateInProgressToast.innerHTML = reportGenerationSuccess();
-        setTimeout(function () {
-          document.getElementById('reportSuccessToast').style.display = 'none';
-        }, 6000); // closes toast automatically after 6s
       } else if (status === 'failure') {
         generateInProgressToast.innerHTML = reportGenerationFailure();
         setTimeout(function () {
