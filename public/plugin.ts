@@ -14,7 +14,6 @@ import { DataSourcePluginSetup } from '../../../src/plugins/data_source/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../common';
 import './components/context_menu/context_menu';
 import { applicationService } from './components/utils/application_service';
-import { overlaysService } from './components/utils/overlays_service';
 import { uiSettingsService } from './components/utils/settings_service';
 import { registerAllPluginNavGroups } from './plugin_nav';
 import {
@@ -75,7 +74,6 @@ export class ReportsDashboardsPlugin
     plugins: ReportsDashboardsPluginStart
   ): ReportsDashboardsPluginStart {
     applicationService.init(core.application);
-    overlaysService.init(core.overlays);
     pluginsService.init(plugins);
     return {
       // Wazuh Dashboard Reporting - Generate PDF report exposed method

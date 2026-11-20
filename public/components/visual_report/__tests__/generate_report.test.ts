@@ -6,18 +6,13 @@
 // WAZUH: file added to cover the report footer missing from the capture (issue #226)
 
 import html2canvas from 'html2canvas';
-import { BehaviorSubject } from 'rxjs';
 import { generateReport } from '../generate_report';
-import { overlaysService } from '../../utils/overlays_service';
 import { uiSettingsService } from '../../utils/settings_service';
 
 jest.mock('html2canvas', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('jspdf', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('tesseract.js', () => ({ createWorker: jest.fn() }));
 jest.mock('uuid', () => ({ v1: () => 'test-uuid' }));
-jest.mock('../../utils/overlays_service', () => ({
-  overlaysService: { getOverlays: jest.fn() },
-}));
 jest.mock('../../utils/settings_service', () => ({
   uiSettingsService: {
     get: jest.fn(),
@@ -119,23 +114,52 @@ describe('generateReport', () => {
   });
 
   // WAZUH: issue wazuh-dashboard-plugins#9698
-  describe('docked sidecar', () => {
-    const mockSidecar = (config?: {
-      dockedMode: string;
-      isHidden?: boolean;
-    }) => {
-      const config$ = new BehaviorSubject(config);
-      const sidecar = {
-        getSidecarConfig$: () => config$,
-        hide: jest.fn(() =>
-          config$.next({ ...config$.value!, isHidden: true })
-        ),
-        show: jest.fn(() =>
-          config$.next({ ...config$.value!, isHidden: false })
-        ),
-      };
-      (overlaysService.getOverlays as jest.Mock).mockReturnValue({ sidecar });
-      return { sidecar, config$ };
+  describe('with a docked sidecar', () => {
+    const WINDOW_WIDTH = 1400;
+    const SIDECAR_LEFT = 900;
+
+    const renderPage = (sidecarClasses?: string) => {
+      document.body.innerHTML =
+        '<div id="opensearch-dashboards-body"><div id="dashboardViewport">content</div></div>';
+      if (sidecarClasses) {
+        const sidecar = document.createElement('div');
+        sidecar.className = sidecarClasses;
+        document.body.appendChild(sidecar);
+      }
+      jest
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: HTMLElement) {
+          if (this.id === 'opensearch-dashboards-body') {
+            return { width: WINDOW_WIDTH, top: 0, height: 0 } as DOMRect;
+          }
+          if (this.classList.contains('osdSidecarFlyout')) {
+            return { left: SIDECAR_LEFT, top: 0, height: 0 } as DOMRect;
+          }
+          return { width: 0, top: 0, height: 0, bottom: 0 } as DOMRect;
+        });
+    };
+
+    const captureOptions = () => {
+      const state: {
+        options?: { width: number; windowWidth: number };
+        headerWidth?: string;
+        footerWidth?: string;
+      } = {};
+      (html2canvas as jest.Mock).mockImplementation((_element, options) => {
+        state.options = options;
+        const wrapperOf = (selector: string) =>
+          document
+            .querySelector(selector)
+            ?.closest<HTMLElement>('.reportWrapper');
+        state.headerWidth = wrapperOf('#reportingHeader')?.style.width;
+        state.footerWidth = wrapperOf('#reportingFooter')?.style.width;
+        return Promise.resolve({
+          width: 100,
+          height: 100,
+          toDataURL: () => 'data:image/png;base64,',
+        });
+      });
+      return state;
     };
 
     beforeEach(() => {
@@ -143,71 +167,41 @@ describe('generateReport', () => {
     });
 
     afterEach(() => {
-      (overlaysService.getOverlays as jest.Mock).mockReset();
+      jest.restoreAllMocks();
     });
 
-    it('hides a visible sidecar during the capture and shows it afterwards', async () => {
-      const { sidecar, config$ } = mockSidecar({ dockedMode: 'right' });
-      let hiddenAtCapture: boolean | undefined;
-      captureCallState();
-      const capture = (html2canvas as jest.Mock).getMockImplementation()!;
-      (html2canvas as jest.Mock).mockImplementation((...args) => {
-        hiddenAtCapture = config$.value?.isHidden;
-        return capture(...args);
-      });
+    it('crops the capture, header and footer at a right docked sidecar', async () => {
+      renderPage('osdSidecarFlyout osdSidecarFlyout--dockedRight');
+      const state = captureOptions();
 
       await generateReport('report-id', 0);
 
-      expect(hiddenAtCapture).toBe(true);
-      expect(sidecar.hide).toHaveBeenCalledTimes(1);
-      expect(sidecar.show).toHaveBeenCalledTimes(1);
-      expect(config$.value?.isHidden).toBe(false);
-    });
-
-    it('shows the sidecar again when the capture fails', async () => {
-      const { sidecar, config$ } = mockSidecar({ dockedMode: 'right' });
-      (html2canvas as jest.Mock).mockRejectedValue(new Error('capture failed'));
-
-      await expect(generateReport('report-id', 0)).rejects.toThrow(
-        'capture failed'
-      );
-
-      expect(sidecar.show).toHaveBeenCalledTimes(1);
-      expect(config$.value?.isHidden).toBe(false);
-    });
-
-    it('shows the sidecar again when the report cannot be loaded', async () => {
-      const { sidecar } = mockSidecar({ dockedMode: 'right' });
-      (uiSettingsService.getHttpClient as jest.Mock).mockReturnValue({
-        get: jest.fn().mockRejectedValue(new Error('not found')),
-      });
-
-      await expect(generateReport('report-id', 0)).rejects.toThrow('not found');
-
-      expect(sidecar.hide).toHaveBeenCalledTimes(1);
-      expect(sidecar.show).toHaveBeenCalledTimes(1);
+      expect(state.options?.width).toBe(SIDECAR_LEFT);
+      // The clone keeps the window width, so the page keeps its layout
+      expect(state.options?.windowWidth).toBe(WINDOW_WIDTH);
+      expect(state.headerWidth).toBe(`${SIDECAR_LEFT}px`);
+      expect(state.footerWidth).toBe(`${SIDECAR_LEFT}px`);
     });
 
     it.each([
       ['no sidecar is open', undefined],
       [
-        'the sidecar is already hidden',
-        { dockedMode: 'right', isHidden: true },
+        'the sidecar is hidden',
+        'osdSidecarFlyout osdSidecarFlyout--dockedRight osdSidecarFlyout--hide',
       ],
-    ])('leaves the sidecar alone when %s', async (_name, config) => {
-      const { sidecar } = mockSidecar(config);
-      captureCallState();
+      [
+        'the sidecar is docked on the left',
+        'osdSidecarFlyout osdSidecarFlyout--dockedLeft',
+      ],
+    ])('captures the whole width when %s', async (_name, sidecarClasses) => {
+      renderPage(sidecarClasses);
+      const state = captureOptions();
 
       await generateReport('report-id', 0);
 
-      expect(sidecar.hide).not.toHaveBeenCalled();
-      expect(sidecar.show).not.toHaveBeenCalled();
-    });
-
-    it('works when the overlays are not available', async () => {
-      captureCallState();
-
-      await expect(generateReport('report-id', 0)).resolves.toBe(true);
+      expect(state.options?.width).toBe(WINDOW_WIDTH);
+      expect(state.options?.windowWidth).toBe(WINDOW_WIDTH);
+      expect(state.headerWidth).toBe('');
     });
   });
 });
