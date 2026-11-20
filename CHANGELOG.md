@@ -11,6 +11,12 @@
 | [wazuh-dashboard-plugins#7895](https://github.com/wazuh/wazuh-dashboard-plugins/issues/7895) | Export generate pdf report method |
 | [#110](https://github.com/wazuh/wazuh-dashboard-reporting/issues/110) | Added a setting to configure the base URL for the report generated in the notification |
 
+### Changed
+
+| Issue | Comment |
+| ----- | ------- |
+| [wazuh-dashboard#1779](https://github.com/wazuh/wazuh-dashboard/issues/1779) | Changed the Node.js version used for development and CI from `22.22.0` to `22.23.4` |
+
 ### Removed
 
 | Issue | Comment |
