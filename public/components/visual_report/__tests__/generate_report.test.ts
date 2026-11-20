@@ -6,13 +6,18 @@
 // WAZUH: file added to cover the report footer missing from the capture (issue #226)
 
 import html2canvas from 'html2canvas';
+import { BehaviorSubject } from 'rxjs';
 import { generateReport } from '../generate_report';
+import { overlaysService } from '../../utils/overlays_service';
 import { uiSettingsService } from '../../utils/settings_service';
 
 jest.mock('html2canvas', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('jspdf', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('tesseract.js', () => ({ createWorker: jest.fn() }));
 jest.mock('uuid', () => ({ v1: () => 'test-uuid' }));
+jest.mock('../../utils/overlays_service', () => ({
+  overlaysService: { getOverlays: jest.fn() },
+}));
 jest.mock('../../utils/settings_service', () => ({
   uiSettingsService: {
     get: jest.fn(),
@@ -111,5 +116,98 @@ describe('generateReport', () => {
 
     expect(document.querySelectorAll('.reportWrapper')).toHaveLength(0);
     expect(document.querySelectorAll('.reportInjectedStyles')).toHaveLength(0);
+  });
+
+  // WAZUH: issue wazuh-dashboard-plugins#9698
+  describe('docked sidecar', () => {
+    const mockSidecar = (config?: {
+      dockedMode: string;
+      isHidden?: boolean;
+    }) => {
+      const config$ = new BehaviorSubject(config);
+      const sidecar = {
+        getSidecarConfig$: () => config$,
+        hide: jest.fn(() =>
+          config$.next({ ...config$.value!, isHidden: true })
+        ),
+        show: jest.fn(() =>
+          config$.next({ ...config$.value!, isHidden: false })
+        ),
+      };
+      (overlaysService.getOverlays as jest.Mock).mockReturnValue({ sidecar });
+      return { sidecar, config$ };
+    };
+
+    beforeEach(() => {
+      (uiSettingsService.get as jest.Mock).mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      (overlaysService.getOverlays as jest.Mock).mockReset();
+    });
+
+    it('hides a visible sidecar during the capture and shows it afterwards', async () => {
+      const { sidecar, config$ } = mockSidecar({ dockedMode: 'right' });
+      let hiddenAtCapture: boolean | undefined;
+      captureCallState();
+      const capture = (html2canvas as jest.Mock).getMockImplementation()!;
+      (html2canvas as jest.Mock).mockImplementation((...args) => {
+        hiddenAtCapture = config$.value?.isHidden;
+        return capture(...args);
+      });
+
+      await generateReport('report-id', 0);
+
+      expect(hiddenAtCapture).toBe(true);
+      expect(sidecar.hide).toHaveBeenCalledTimes(1);
+      expect(sidecar.show).toHaveBeenCalledTimes(1);
+      expect(config$.value?.isHidden).toBe(false);
+    });
+
+    it('shows the sidecar again when the capture fails', async () => {
+      const { sidecar, config$ } = mockSidecar({ dockedMode: 'right' });
+      (html2canvas as jest.Mock).mockRejectedValue(new Error('capture failed'));
+
+      await expect(generateReport('report-id', 0)).rejects.toThrow(
+        'capture failed'
+      );
+
+      expect(sidecar.show).toHaveBeenCalledTimes(1);
+      expect(config$.value?.isHidden).toBe(false);
+    });
+
+    it('shows the sidecar again when the report cannot be loaded', async () => {
+      const { sidecar } = mockSidecar({ dockedMode: 'right' });
+      (uiSettingsService.getHttpClient as jest.Mock).mockReturnValue({
+        get: jest.fn().mockRejectedValue(new Error('not found')),
+      });
+
+      await expect(generateReport('report-id', 0)).rejects.toThrow('not found');
+
+      expect(sidecar.hide).toHaveBeenCalledTimes(1);
+      expect(sidecar.show).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['no sidecar is open', undefined],
+      [
+        'the sidecar is already hidden',
+        { dockedMode: 'right', isHidden: true },
+      ],
+    ])('leaves the sidecar alone when %s', async (_name, config) => {
+      const { sidecar } = mockSidecar(config);
+      captureCallState();
+
+      await generateReport('report-id', 0);
+
+      expect(sidecar.hide).not.toHaveBeenCalled();
+      expect(sidecar.show).not.toHaveBeenCalled();
+    });
+
+    it('works when the overlays are not available', async () => {
+      captureCallState();
+
+      await expect(generateReport('report-id', 0)).resolves.toBe(true);
+    });
   });
 });

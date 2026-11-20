@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { createWorker } from 'tesseract.js';
 import { v1 as uuidv1 } from 'uuid';
 import { ReportSchemaType } from '../../../server/model';
+import { overlaysService } from '../utils/overlays_service';
 import { uiSettingsService } from '../utils/settings_service';
 import { reportingStyle } from './assets/report_styles';
 import {
@@ -117,7 +118,37 @@ const addReportStyle = (doc: Document, style: string) => {
   doc.body.style.paddingTop = '0px';
 };
 
+/* WAZUH: a docked sidecar (e.g. the AI Assistant chat) pads the page and narrows the
+ * dashboard. Hide it for the whole run so the page lays out at full width before the
+ * render delay, and show it again afterwards (issue wazuh-dashboard-plugins#9698).
+ * Returns the function that restores it.
+ */
+const hideSidecar = () => {
+  const sidecar = overlaysService.getOverlays()?.sidecar;
+  if (!sidecar) return () => {};
+  let isVisible = false;
+  sidecar
+    .getSidecarConfig$()
+    .subscribe((config) => {
+      isVisible = Boolean(config) && !config?.isHidden;
+    })
+    .unsubscribe();
+  if (!isVisible) return () => {};
+  sidecar.hide();
+  return () => sidecar.show();
+};
+
 export const generateReport = async (id: string, forceDelay = 15000) => {
+  const restoreSidecar = hideSidecar();
+  try {
+    return await generateReportContent(id, forceDelay);
+  } finally {
+    restoreSidecar();
+  }
+};
+// END WAZUH
+
+const generateReportContent = async (id: string, forceDelay: number) => {
   const http = uiSettingsService.getHttpClient();
   const useForeignObjectRendering = uiSettingsService.get('reporting:useFOR');
   const DOMPurify = createDOMPurify(window);
