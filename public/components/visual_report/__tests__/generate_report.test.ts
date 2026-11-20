@@ -112,4 +112,96 @@ describe('generateReport', () => {
     expect(document.querySelectorAll('.reportWrapper')).toHaveLength(0);
     expect(document.querySelectorAll('.reportInjectedStyles')).toHaveLength(0);
   });
+
+  // WAZUH: issue wazuh-dashboard-plugins#9698
+  describe('with a docked sidecar', () => {
+    const WINDOW_WIDTH = 1400;
+    const SIDECAR_LEFT = 900;
+
+    const renderPage = (sidecarClasses?: string) => {
+      document.body.innerHTML =
+        '<div id="opensearch-dashboards-body"><div id="dashboardViewport">content</div></div>';
+      if (sidecarClasses) {
+        const sidecar = document.createElement('div');
+        sidecar.className = sidecarClasses;
+        document.body.appendChild(sidecar);
+      }
+      jest
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: HTMLElement) {
+          if (this.id === 'opensearch-dashboards-body') {
+            return { width: WINDOW_WIDTH, top: 0, height: 0 } as DOMRect;
+          }
+          if (this.classList.contains('osdSidecarFlyout')) {
+            return { left: SIDECAR_LEFT, top: 0, height: 0 } as DOMRect;
+          }
+          return { width: 0, top: 0, height: 0, bottom: 0 } as DOMRect;
+        });
+    };
+
+    const captureOptions = () => {
+      const state: {
+        options?: { width: number; windowWidth: number };
+        headerWidth?: string;
+        footerWidth?: string;
+      } = {};
+      (html2canvas as jest.Mock).mockImplementation((_element, options) => {
+        state.options = options;
+        const wrapperOf = (selector: string) =>
+          document
+            .querySelector(selector)
+            ?.closest<HTMLElement>('.reportWrapper');
+        state.headerWidth = wrapperOf('#reportingHeader')?.style.width;
+        state.footerWidth = wrapperOf('#reportingFooter')?.style.width;
+        return Promise.resolve({
+          width: 100,
+          height: 100,
+          toDataURL: () => 'data:image/png;base64,',
+        });
+      });
+      return state;
+    };
+
+    beforeEach(() => {
+      (uiSettingsService.get as jest.Mock).mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('crops the capture, header and footer at a right docked sidecar', async () => {
+      renderPage('osdSidecarFlyout osdSidecarFlyout--dockedRight');
+      const state = captureOptions();
+
+      await generateReport('report-id', 0);
+
+      expect(state.options?.width).toBe(SIDECAR_LEFT);
+      // The clone keeps the window width, so the page keeps its layout
+      expect(state.options?.windowWidth).toBe(WINDOW_WIDTH);
+      expect(state.headerWidth).toBe(`${SIDECAR_LEFT}px`);
+      expect(state.footerWidth).toBe(`${SIDECAR_LEFT}px`);
+    });
+
+    it.each([
+      ['no sidecar is open', undefined],
+      [
+        'the sidecar is hidden',
+        'osdSidecarFlyout osdSidecarFlyout--dockedRight osdSidecarFlyout--hide',
+      ],
+      [
+        'the sidecar is docked on the left',
+        'osdSidecarFlyout osdSidecarFlyout--dockedLeft',
+      ],
+    ])('captures the whole width when %s', async (_name, sidecarClasses) => {
+      renderPage(sidecarClasses);
+      const state = captureOptions();
+
+      await generateReport('report-id', 0);
+
+      expect(state.options?.width).toBe(WINDOW_WIDTH);
+      expect(state.options?.windowWidth).toBe(WINDOW_WIDTH);
+      expect(state.headerWidth).toBe('');
+    });
+  });
 });

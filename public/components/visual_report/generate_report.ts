@@ -117,6 +117,19 @@ const addReportStyle = (doc: Document, style: string) => {
   doc.body.style.paddingTop = '0px';
 };
 
+/* WAZUH: a sidecar docked on the right (e.g. the AI Assistant chat) pads the page, so the
+ * dashboard ends at its left edge. Returns that edge to crop the report there instead of
+ * leaving a blank area (issue wazuh-dashboard-plugins#9698).
+ */
+const getRightSidecarLeft = () => {
+  const sidecar = document.querySelector<HTMLElement>(
+    '.osdSidecarFlyout--dockedRight:not(.osdSidecarFlyout--hide)'
+  );
+  const left = sidecar?.getBoundingClientRect().left;
+  return left && left > 0 ? left : undefined;
+};
+// END WAZUH
+
 export const generateReport = async (id: string, forceDelay = 15000) => {
   const http = uiSettingsService.getHttpClient();
   const useForeignObjectRendering = uiSettingsService.get('reporting:useFOR');
@@ -199,7 +212,17 @@ export const generateReport = async (id: string, forceDelay = 15000) => {
   const innerBodyDims = document
     .getElementById('opensearch-dashboards-body')
     ?.getBoundingClientRect();
-  const width = innerBodyDims?.width || document.documentElement.scrollWidth;
+  const windowWidth =
+    innerBodyDims?.width || document.documentElement.scrollWidth;
+  // WAZUH: crop at a right docked sidecar; the clone still lays out at the window width
+  const width = Math.min(windowWidth, getRightSidecarLeft() ?? windowWidth);
+  if (width < windowWidth) {
+    // Fit the header inside the crop, as the footer below
+    document
+      .querySelector<HTMLElement>('#reportingHeader')
+      ?.closest<HTMLElement>('.reportWrapper')
+      ?.style.setProperty('width', `${width}px`);
+  }
 
   /* WAZUH: `html2canvas` re-lays the page out in a viewport as tall as the whole capture.
    * That inflates every ancestor of the footer that is sized with `vh` or `%` units (OSD
@@ -247,7 +270,7 @@ export const generateReport = async (id: string, forceDelay = 15000) => {
   return html2canvas(document.body, {
     scrollX: 0,
     scrollY: 0,
-    windowWidth: width,
+    windowWidth,
     windowHeight: height,
     width,
     height,
