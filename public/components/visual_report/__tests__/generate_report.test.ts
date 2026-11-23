@@ -114,17 +114,18 @@ describe('generateReport', () => {
   });
 
   // WAZUH: issue wazuh-dashboard-plugins#9698
-  describe('with a docked sidecar', () => {
+  describe('with the AI Assistant panel', () => {
     const WINDOW_WIDTH = 1400;
-    const SIDECAR_LEFT = 900;
+    const PANEL_LEFT = 900;
 
-    const renderPage = (sidecarClasses?: string) => {
+    const renderPage = (panel?: { testSubj: string; left: number }) => {
       document.body.innerHTML =
         '<div id="opensearch-dashboards-body"><div id="dashboardViewport">content</div></div>';
-      if (sidecarClasses) {
-        const sidecar = document.createElement('div');
-        sidecar.className = sidecarClasses;
-        document.body.appendChild(sidecar);
+      if (panel) {
+        const element = document.createElement('div');
+        element.className = 'osdSidecarFlyout osdSidecarFlyout--dockedRight';
+        element.setAttribute('data-test-subj', panel.testSubj);
+        document.body.appendChild(element);
       }
       jest
         .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -132,8 +133,8 @@ describe('generateReport', () => {
           if (this.id === 'opensearch-dashboards-body') {
             return { width: WINDOW_WIDTH, top: 0, height: 0 } as DOMRect;
           }
-          if (this.classList.contains('osdSidecarFlyout')) {
-            return { left: SIDECAR_LEFT, top: 0, height: 0 } as DOMRect;
+          if (panel && this.dataset.testSubj === panel.testSubj) {
+            return { left: panel.left, top: 0, height: 0 } as DOMRect;
           }
           return { width: 0, top: 0, height: 0, bottom: 0 } as DOMRect;
         });
@@ -170,31 +171,28 @@ describe('generateReport', () => {
       jest.restoreAllMocks();
     });
 
-    it('crops the capture, header and footer at a right docked sidecar', async () => {
-      renderPage('osdSidecarFlyout osdSidecarFlyout--dockedRight');
+    it('crops the capture, header and footer at the open panel', async () => {
+      renderPage({ testSubj: 'wzAiAssistantSidecar', left: PANEL_LEFT });
       const state = captureOptions();
 
       await generateReport('report-id', 0);
 
-      expect(state.options?.width).toBe(SIDECAR_LEFT);
+      expect(state.options?.width).toBe(PANEL_LEFT);
       // The clone keeps the window width, so the page keeps its layout
       expect(state.options?.windowWidth).toBe(WINDOW_WIDTH);
-      expect(state.headerWidth).toBe(`${SIDECAR_LEFT}px`);
-      expect(state.footerWidth).toBe(`${SIDECAR_LEFT}px`);
+      expect(state.headerWidth).toBe(`${PANEL_LEFT}px`);
+      expect(state.footerWidth).toBe(`${PANEL_LEFT}px`);
     });
 
     it.each([
-      ['no sidecar is open', undefined],
+      ['the panel is closed', undefined],
+      ['the panel is hidden', { testSubj: 'wzAiAssistantSidecar', left: 0 }],
       [
-        'the sidecar is hidden',
-        'osdSidecarFlyout osdSidecarFlyout--dockedRight osdSidecarFlyout--hide',
+        'another sidecar is open',
+        { testSubj: 'otherSidecar', left: PANEL_LEFT },
       ],
-      [
-        'the sidecar is docked on the left',
-        'osdSidecarFlyout osdSidecarFlyout--dockedLeft',
-      ],
-    ])('captures the whole width when %s', async (_name, sidecarClasses) => {
-      renderPage(sidecarClasses);
+    ])('captures the whole width when %s', async (_name, panel) => {
+      renderPage(panel);
       const state = captureOptions();
 
       await generateReport('report-id', 0);
